@@ -1,8 +1,11 @@
 package validator
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"reflect"
 	"regexp"
 	"strings"
@@ -116,4 +119,18 @@ func IsDateValid(date string) error {
 	}
 
 	return nil
+}
+
+func ConvertToTime(val interface{}) *time.Time {
+	if val == nil {
+		return nil
+	}
+	t := time.Unix(int64(val.(float64)), 0)
+	return &t
+}
+
+func JSONReader(v interface{}) io.Reader {
+	b := new(bytes.Buffer)
+	json.NewEncoder(b).Encode(v)
+	return b
 }
