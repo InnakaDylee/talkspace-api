@@ -91,7 +91,7 @@ func LoadConfig() (*Configuration, error) {
 			POSTGRESQL_PASS: os.Getenv("POSTGRESQL_PASS"),
 			POSTGRESQL_HOST: os.Getenv("POSTGRESQL_HOST"),
 			POSTGRESQL_PORT: os.Getenv("POSTGRESQL_PORT"),
-			POSTGRESQL_NAME: os.Getenv("POSTGRESQL_DB"),
+			POSTGRESQL_NAME: os.Getenv("POSTGRESQL_NAME"),
 		},
 		REDIS: RedisConfig{
 			REDIS_HOST: os.Getenv("REDIS_HOST"),

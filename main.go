@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"talkspace-api/app/configs"
 	"talkspace-api/app/databases"
 	"talkspace-api/app/routes"
@@ -39,8 +37,10 @@ func main() {
 	// docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	pdb := databases.ConnectPostgreSQL()
-	// rdb := databases.ConnectRedis()
-	// defer rdb.Close()
+	es := databases.ConnectElasticsearch()
+	rdb := databases.ConnectRedis()
+
+	defer rdb.Close()
 
 	e := echo.New()
 
@@ -50,7 +50,7 @@ func main() {
 	middlewares.Recover(e)
 	middlewares.CORS(e)
 
-	routes.SetupRoutes(e, pdb)
+	routes.SetupRoutes(e, pdb, es)
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
@@ -64,7 +64,7 @@ func main() {
 	}
 	address := host + ":" + port
 
-	log.Printf("server is running on address %s...", address)
+	logrus.Info("server is running on address %s...", address)
 	if err := e.Start(address); err != nil {
 		logrus.Fatalf("error starting server: %v", err)
 	}

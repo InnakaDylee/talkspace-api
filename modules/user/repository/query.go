@@ -6,18 +6,24 @@ import (
 	"talkspace-api/modules/user/model"
 	"talkspace-api/utils/constant"
 
+	"github.com/elastic/go-elasticsearch/v8"
 	"gorm.io/gorm"
 )
 
 type userQueryRepository struct {
 	db *gorm.DB
+	es *elasticsearch.Client
 }
 
-func NewUserQueryRepository(db *gorm.DB) UserQueryRepositoryInterface {
+func NewUserQueryRepository(db *gorm.DB, es *elasticsearch.Client) UserQueryRepositoryInterface {
 	return &userQueryRepository{
 		db: db,
+		es: es,
 	}
 }
+
+
+
 
 func (uqr *userQueryRepository) GetUserByID(id string) (entity.User, error) {
 	userModel := model.User{}
