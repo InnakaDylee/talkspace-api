@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"talkspace-api/app/configs"
+	"talkspace-api/app/databases"
 	"talkspace-api/utils/constant"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -21,6 +22,11 @@ func init() {
 	if err != nil {
 		logrus.Fatalf("failed to load configuration: %v", err)
 	}
+	config, err = configs.LoadConfig()
+	if err != nil {
+		logrus.Fatalf("failed to load configuration: %v", err)
+	}
+	databases.ConnectRedis()
 }
 
 func JWTMiddleware() echo.MiddlewareFunc {
@@ -30,7 +36,7 @@ func JWTMiddleware() echo.MiddlewareFunc {
 	})
 }
 
-func CreateToken(id string, role string) (string, error) {
+func GenerateToken(id string, role string) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
 	claims["id"] = id
@@ -38,21 +44,37 @@ func CreateToken(id string, role string) (string, error) {
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(config.JWT.JWT_SECRET))
+	tokenString, err := token.SignedString([]byte(config.JWT.JWT_SECRET))
+	if err != nil {
+		return "", err
+	}
+
+	err = databases.SetToken(id, tokenString, time.Hour*24)
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }
 
 func ExtractToken(c echo.Context) (string, string, error) {
 	user := c.Get("user").(*jwt.Token)
 	if user.Valid {
 		claims := user.Claims.(jwt.MapClaims)
-		Id := claims["id"].(string)
-		Role := claims["role"].(string)
-		return Id, Role, nil
+		id := claims["id"].(string)
+		role := claims["role"].(string)
+
+		tokenFromRedis, err := databases.GetToken(id)
+		if err != nil || tokenFromRedis == "" {
+			return "", "", errors.New(constant.ERROR_TOKEN_INVALID)
+		}
+
+		return id, role, nil
 	}
 	return "", "", errors.New(constant.ERROR_TOKEN_INVALID)
 }
 
-func CreateVerifyToken(email string) (string, error) {
+func GenerateVerifyToken(email string) (string, error) {
 	godotenv.Load()
 	claims := jwt.MapClaims{}
 	claims["email"] = email

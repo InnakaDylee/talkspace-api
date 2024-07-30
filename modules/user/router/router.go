@@ -7,12 +7,13 @@ import (
 	"talkspace-api/modules/user/usecase"
 
 	"github.com/labstack/echo/v4"
+	"github.com/elastic/go-elasticsearch/v8"
 	"gorm.io/gorm"
 )
 
-func UserRoutes(e *echo.Group, db *gorm.DB) {
-	userQueryRepository := repository.NewUserQueryRepository(db)
-	userCommandRepository := repository.NewUserCommandRepository(db)
+func UserRoutes(e *echo.Group, db *gorm.DB, es *elasticsearch.Client) {
+	userQueryRepository := repository.NewUserQueryRepository(db, es)
+	userCommandRepository := repository.NewUserCommandRepository(db, es)
 
 	userQueryUsecase := usecase.NewUserQueryUsecase(userCommandRepository, userQueryRepository)
 	userCommandUsecase := usecase.NewUserCommandUsecase(userCommandRepository, userQueryRepository)

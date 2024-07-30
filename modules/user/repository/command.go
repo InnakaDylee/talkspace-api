@@ -1,25 +1,31 @@
 package repository
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
 	"errors"
 	"talkspace-api/modules/user/entity"
 	"talkspace-api/modules/user/model"
 	"talkspace-api/utils/bcrypt"
 	"talkspace-api/utils/constant"
 
+	"github.com/elastic/go-elasticsearch/v8"
+
 	"gorm.io/gorm"
 )
 
 type userCommandRepository struct {
 	db *gorm.DB
+	es *elasticsearch.Client
 }
 
-func NewUserCommandRepository(db *gorm.DB) UserCommandRepositoryInterface {
+func NewUserCommandRepository(db *gorm.DB, es *elasticsearch.Client) UserCommandRepositoryInterface {
 	return &userCommandRepository{
 		db: db,
+		es: es,
 	}
 }
-
 func (ucr *userCommandRepository) RegisterUser(user entity.User) (entity.User, error) {
 	userModel := entity.UserEntityToUserModel(user)
 
@@ -29,6 +35,30 @@ func (ucr *userCommandRepository) RegisterUser(user entity.User) (entity.User, e
 	}
 
 	userEntity := entity.UserModelToUserEntity(userModel)
+	data, err := json.Marshal(userEntity)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	res, err := ucr.es.Index(
+		"users",
+		bytes.NewReader(data),
+		ucr.es.Index.WithContext(context.Background()),
+		ucr.es.Index.WithDocumentID(userEntity.ID),
+	)
+	if err != nil {
+		return entity.User{}, err
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		var e map[string]interface{}
+		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
+			return entity.User{}, err
+		} else {
+			return entity.User{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
+		}
+	}
 
 	return userEntity, nil
 }
@@ -67,6 +97,30 @@ func (ucr *userCommandRepository) UpdateUserByID(id string, user entity.User) (e
 	}
 
 	userEntity := entity.UserModelToUserEntity(userModel)
+	data, err := json.Marshal(userEntity)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	res, err := ucr.es.Index(
+		"users",
+		bytes.NewReader(data),
+		ucr.es.Index.WithContext(context.Background()),
+		ucr.es.Index.WithDocumentID(userEntity.ID),
+	)
+	if err != nil {
+		return entity.User{}, err
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		var e map[string]interface{}
+		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
+			return entity.User{}, err
+		} else {
+			return entity.User{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
+		}
+	}
 
 	return userEntity, nil
 }
@@ -91,9 +145,34 @@ func (ucr *userCommandRepository) UpdateUserIsVerified(id string, isVerified boo
 	}
 
 	userEntity := entity.UserModelToUserEntity(userModel)
+	data, err := json.Marshal(userEntity)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	res, err := ucr.es.Index(
+		"users",
+		bytes.NewReader(data),
+		ucr.es.Index.WithContext(context.Background()),
+		ucr.es.Index.WithDocumentID(userEntity.ID),
+	)
+	if err != nil {
+		return entity.User{}, err
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		var e map[string]interface{}
+		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
+			return entity.User{}, err
+		} else {
+			return entity.User{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
+		}
+	}
 
 	return userEntity, nil
 }
+
 
 func (ucr *userCommandRepository) SendUserOTP(email string, otp string, expired int64) (entity.User, error) {
 	userModel := model.User{}
@@ -119,7 +198,7 @@ func (ucr *userCommandRepository) SendUserOTP(email string, otp string, expired 
 	return userEntity, nil
 }
 
-func (ucr *userCommandRepository) VerifyUserOTP(email, otp string) (entity.User, error){
+func (ucr *userCommandRepository) VerifyUserOTP(email, otp string) (entity.User, error) {
 	userModel := model.User{}
 
 	result := ucr.db.Where("otp = ? AND email = ?", otp, email).First(&userModel)
@@ -197,6 +276,30 @@ func (ucr *userCommandRepository) NewUserPassword(email string, password entity.
 	}
 
 	userEntity := entity.UserModelToUserEntity(userModel)
+	data, err := json.Marshal(userEntity)
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	res, err := ucr.es.Index(
+		"users",
+		bytes.NewReader(data),
+		ucr.es.Index.WithContext(context.Background()),
+		ucr.es.Index.WithDocumentID(userEntity.ID),
+	)
+	if err != nil {
+		return entity.User{}, err
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		var e map[string]interface{}
+		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
+			return entity.User{}, err
+		} else {
+			return entity.User{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
+		}
+	}
 
 	return userEntity, nil
 }

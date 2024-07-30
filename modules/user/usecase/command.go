@@ -95,7 +95,7 @@ func (ucs *userCommandUsecase) LoginUser(email, password string) (entity.User, s
 		return entity.User{}, "", errors.New(constant.ERROR_LOGIN)
 	}
 
-	token, errCreate := middlewares.CreateToken(userEntity.ID, userEntity.Role)
+	token, errCreate := middlewares.GenerateToken(userEntity.ID, userEntity.Role)
 	if errCreate != nil {
 		return entity.User{}, "", errors.New(constant.ERROR_TOKEN_GENERATE)
 	}
@@ -265,7 +265,7 @@ func (ucs *userCommandUsecase) VerifyUserOTP(email, otp string) (string, error) 
 		return "", errors.New(constant.ERROR_OTP_INVALID)
 	}
 
-	token, err := middlewares.CreateVerifyToken(email)
+	token, err := middlewares.GenerateVerifyToken(email)
 	if err != nil {
 		return "", errors.New(constant.ERROR_TOKEN_GENERATE)
 	}
