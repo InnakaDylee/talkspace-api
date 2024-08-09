@@ -66,7 +66,6 @@ func UserEntityToUserRegisterResponse(response entity.User) UserRegisterResponse
 		ID:         response.ID,
 		Fullname:   response.Fullname,
 		Email:      response.Email,
-		IsVerified: response.IsVerified,
 	}
 }
 
@@ -75,7 +74,6 @@ func UserEntityToUserLoginResponse(response entity.User, token string) UserLogin
 		ID:         response.ID,
 		Fullname:   response.Fullname,
 		Email:      response.Email,
-		IsVerified: response.IsVerified,
 		Token:      token,
 	}
 }
@@ -91,7 +89,6 @@ func UserEntityToUserUpdateResponse(response entity.User) UserUpdateResponse {
 		BloodType:      response.BloodType,
 		Weight:         response.Weight,
 		Height:         response.Height,
-		IsVerified:     response.IsVerified,
 	}
 }
 
@@ -100,7 +97,6 @@ func UserEntityToUserResponse(response entity.User) UserResponse {
 		ID:         response.ID,
 		Fullname:   response.Fullname,
 		Email:      response.Email,
-		IsVerified: response.IsVerified,
 	}
 }
 

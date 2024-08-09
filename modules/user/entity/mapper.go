@@ -15,8 +15,6 @@ func UserEntityToUserModel(userEntity User) model.User {
 		Weight:         userEntity.Weight,
 		OTP:            userEntity.OTP,
 		OTPExpiration:  userEntity.OTPExpiration,
-		IsVerified:     userEntity.IsVerified,
-		VerifyAccount:  userEntity.VerifyAccount,
 	}
 	return userModel
 }
@@ -44,8 +42,6 @@ func UserModelToUserEntity(userModel model.User) User {
 		Weight:         userModel.Weight,
 		OTP:            userModel.OTP,
 		OTPExpiration:  userModel.OTPExpiration,
-		IsVerified:     userModel.IsVerified,
-		VerifyAccount:  userModel.VerifyAccount,
 		CreatedAt:      userModel.CreatedAt,
 		UpdatedAt:      userModel.UpdatedAt,
 		DeletedAt:      userModel.DeletedAt,
