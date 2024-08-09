@@ -16,8 +16,6 @@ type User struct {
 	Role           string `gorm:"type:role;default:'user'"`
 	OTP            string `gorm:"not null"`
 	OTPExpiration  int64
-	VerifyAccount  string
-	IsVerified     bool `gorm:"not null;default:false"`
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	DeletedAt      *time.Time `gorm:"index"`

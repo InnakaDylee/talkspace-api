@@ -188,36 +188,6 @@ func (ucs *userCommandUsecase) UpdateUserPassword(id string, password entity.Use
 	return userEntity, nil
 }
 
-func (ucs *userCommandUsecase) VerifyUser(token string) (bool, error) {
-	if token == "" {
-		return false, errors.New(constant.ERROR_TOKEN_INVALID)
-	}
-
-	user, errGetVerifyToken := ucs.userQueryRepository.GetUserByVerificationToken(token)
-	if errGetVerifyToken != nil {
-		return false, errors.New(constant.ERROR_DATA_RETRIEVED)
-	}
-
-	if user.IsVerified {
-		return true, nil
-	}
-
-	_, errUpdate := ucs.userCommandRepository.UpdateUserIsVerified(user.ID, true)
-	if errUpdate != nil {
-		return false, errors.New(constant.ERROR_ACCOUNT_VERIFICATION)
-	}
-
-	return false, nil
-}
-
-func (ucs *userCommandUsecase) UpdateUserIsVerified(id string, isVerified bool) (entity.User, error) {
-	if id == "" {
-		return entity.User{}, errors.New(constant.ERROR_ID_INVALID)
-	}
-
-	return ucs.userCommandRepository.UpdateUserIsVerified(id, isVerified)
-}
-
 func (ucs *userCommandUsecase) SendUserOTP(email string) (entity.User, error) {
 
 	errEmpty := validator.IsDataEmpty([]string{"email"}, email)

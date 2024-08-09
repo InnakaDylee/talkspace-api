@@ -8,8 +8,6 @@ type UserCommandUsecaseInterface interface {
 	UpdateUserByID(id string, user entity.User) (entity.User, error)
 	UpdateUserPassword(id string, password entity.User) (entity.User, error)
 	NewUserPassword(email string, password entity.User) (entity.User, error)
-	VerifyUser(token string) (bool, error)
-	UpdateUserIsVerified(id string, isVerified bool) (entity.User, error)
 	SendUserOTP(email string) (entity.User, error)
 	VerifyUserOTP(email, otp string) (string, error)
 }

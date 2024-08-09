@@ -22,7 +22,6 @@ func UserRoutes(e *echo.Group, db *gorm.DB, es *elasticsearch.Client) {
 
 	account := e.Group("/account")
 	account.POST("register", userHandler.RegisterUser)
-	account.GET("verify-account", userHandler.VerifyUser)
 	account.POST("login", userHandler.LoginUser)
 
 	password := e.Group("/password")
@@ -32,6 +31,6 @@ func UserRoutes(e *echo.Group, db *gorm.DB, es *elasticsearch.Client) {
 	password.PATCH("/change-password", userHandler.UpdateUserPassword, middlewares.JWTMiddleware())
 
 	profile := e.Group("/profile", middlewares.JWTMiddleware())
-	profile.GET("", userHandler.GetUserByID)
-	profile.PUT("", userHandler.UpdateUserByID)
+	profile.GET("/:user_id", userHandler.GetUserByID)
+	profile.PUT("/:user_id", userHandler.UpdateUserByID)
 }

@@ -13,6 +13,5 @@ type UserHandlerInterface interface {
 	UpdateUserPassword(c echo.Context) error
 	ForgotUserPassword(c echo.Context) error
 	NewUserPassword(c echo.Context) error
-	VerifyUser(c echo.Context) error
 	VerifyUserOTP(c echo.Context) error
 }

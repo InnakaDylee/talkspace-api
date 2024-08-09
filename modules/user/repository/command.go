@@ -125,54 +125,6 @@ func (ucr *userCommandRepository) UpdateUserByID(id string, user entity.User) (e
 	return userEntity, nil
 }
 
-func (ucr *userCommandRepository) UpdateUserIsVerified(id string, isVerified bool) (entity.User, error) {
-	userModel := model.User{}
-
-	result := ucr.db.Where("id = ?", id).First(&userModel)
-	if result.Error != nil {
-		return entity.User{}, result.Error
-	}
-
-	if result.RowsAffected == 0 {
-		return entity.User{}, errors.New(constant.ERROR_ID_NOTFOUND)
-	}
-
-	userModel.IsVerified = isVerified
-
-	errSave := ucr.db.Save(&userModel)
-	if errSave.Error != nil {
-		return entity.User{}, errSave.Error
-	}
-
-	userEntity := entity.UserModelToUserEntity(userModel)
-	data, err := json.Marshal(userEntity)
-	if err != nil {
-		return entity.User{}, err
-	}
-
-	res, err := ucr.es.Index(
-		"users",
-		bytes.NewReader(data),
-		ucr.es.Index.WithContext(context.Background()),
-		ucr.es.Index.WithDocumentID(userEntity.ID),
-	)
-	if err != nil {
-		return entity.User{}, err
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		var e map[string]interface{}
-		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-			return entity.User{}, err
-		} else {
-			return entity.User{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
-		}
-	}
-
-	return userEntity, nil
-}
-
 
 func (ucr *userCommandRepository) SendUserOTP(email string, otp string, expired int64) (entity.User, error) {
 	userModel := model.User{}

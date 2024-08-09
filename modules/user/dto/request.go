@@ -6,7 +6,6 @@ type (
 		Email           string `json:"email" form:"email"`
 		Password        string `json:"password" form:"password"`
 		ConfirmPassword string `json:"confirm_password" form:"confirm_password"`
-		VerifyAccount   string `json:"verify_account" form:"verify_account"`
 	}
 
 	UserLoginRequest struct {

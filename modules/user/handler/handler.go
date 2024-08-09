@@ -7,7 +7,6 @@ import (
 	"talkspace-api/modules/user/dto"
 	"talkspace-api/modules/user/usecase"
 	"talkspace-api/utils/constant"
-	"talkspace-api/utils/generator"
 	"talkspace-api/utils/responses"
 
 	"github.com/labstack/echo/v4"
@@ -27,17 +26,25 @@ func NewUserHandler(ucu usecase.UserCommandUsecaseInterface, uqu usecase.UserQue
 
 // Query
 func (uh *userHandler) GetUserByID(c echo.Context) error {
-	userID, role, errExtract := middlewares.ExtractToken(c)
+	userIDParam := c.Param("user_id")
+	if userIDParam == "" {
+		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(constant.ERROR_ID_NOTFOUND))
+	}
+
+	tokenUserID, role, errExtract := middlewares.ExtractToken(c)
+	if errExtract != nil {
+		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(errExtract.Error()))
+	}
 
 	if role != constant.USER {
 		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(constant.ERROR_ROLE_ACCESS))
 	}
 
-	if errExtract != nil {
-		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(errExtract.Error()))
+	if userIDParam != tokenUserID {
+		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(constant.ERROR_ROLE_ACCESS))
 	}
 
-	user, errGetID := uh.userQueryUsecase.GetUserByID(userID)
+	user, errGetID := uh.userQueryUsecase.GetUserByID(userIDParam)
 	if errGetID != nil {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errGetID.Error()))
 	}
@@ -87,6 +94,24 @@ func (uh *userHandler) LoginUser(c echo.Context) error {
 }
 
 func (uh *userHandler) UpdateUserByID(c echo.Context) error {
+	userIDParam := c.Param("user_id")
+	if userIDParam == "" {
+		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(constant.ERROR_ID_NOTFOUND))
+	}
+
+	tokenUserID, role, errExtract := middlewares.ExtractToken(c)
+	if errExtract != nil {
+		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(errExtract.Error()))
+	}
+
+	if role != constant.USER {
+		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(constant.ERROR_ROLE_ACCESS))
+	}
+
+	if userIDParam != tokenUserID {
+		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(constant.ERROR_ROLE_ACCESS))
+	}
+
 	userRequest := dto.UserUpdateRequest{}
 
 	errBind := c.Bind(&userRequest)
@@ -94,19 +119,9 @@ func (uh *userHandler) UpdateUserByID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errBind.Error()))
 	}
 
-	userID, role, errExtract := middlewares.ExtractToken(c)
-
-	if role != constant.USER {
-		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(constant.ERROR_ROLE_ACCESS))
-	}
-
-	if errExtract != nil {
-		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(errExtract.Error()))
-	}
-
 	userEntity := dto.UserUpdateRequestToUserEntity(userRequest)
 
-	user, errUpdate := uh.userCommandUsecase.UpdateUserByID(userID, userEntity)
+	user, errUpdate := uh.userCommandUsecase.UpdateUserByID(userIDParam, userEntity)
 	if errUpdate != nil {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errUpdate.Error()))
 	}
@@ -144,29 +159,6 @@ func (uh *userHandler) UpdateUserPassword(c echo.Context) error {
 	userResponse := dto.UserEntityToUserResponse(password)
 
 	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, userResponse))
-}
-
-func (uh *userHandler) VerifyUser(c echo.Context) error {
-	token := c.QueryParam("token")
-
-	userVerified, errVerified := uh.userCommandUsecase.VerifyUser(token)
-	if errVerified != nil {
-		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errVerified.Error()))
-	}
-
-	if userVerified {
-		email, errGenerateTemplate := generator.GenerateEmailTemplate("verification-account.html", nil)
-		if errGenerateTemplate != nil {
-			return c.JSON(http.StatusInternalServerError, responses.ErrorResponse(constant.ERROR_TEMPLATE_READER))
-		}
-		return c.HTML(http.StatusOK, email)
-	}
-
-	email, errGenerateTemplate := generator.GenerateEmailTemplate("verification-account-success.html", nil)
-	if errGenerateTemplate != nil {
-		return c.JSON(http.StatusInternalServerError, responses.ErrorResponse(constant.ERROR_TEMPLATE_READER))
-	}
-	return c.HTML(http.StatusOK, email)
 }
 
 func (uh *userHandler) ForgotUserPassword(c echo.Context) error {
