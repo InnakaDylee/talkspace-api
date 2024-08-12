@@ -24,14 +24,12 @@ func ConnectPostgreSQL() *gorm.DB {
 		config.POSTGRESQL.POSTGRESQL_PORT,
 	)
 
-	// log.Printf("DSN: %s", dsn)
-
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("failed to connect PostgreSQL: %v", err)
 	}
 
-	//Migration(db)
+	Migration(db)
 
 	logrus.Info("connected to PostgreSQL")
 
