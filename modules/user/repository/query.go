@@ -11,98 +11,131 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 type userQueryRepository struct {
-	db *gorm.DB
-	es *elasticsearch.Client
+	db  *gorm.DB
+	es  *elasticsearch.Client
+	rdb *redis.Client
 }
 
-func NewUserQueryRepository(db *gorm.DB, es *elasticsearch.Client) UserQueryRepositoryInterface {
+func NewUserQueryRepository(db *gorm.DB, es *elasticsearch.Client, rdb *redis.Client) UserQueryRepositoryInterface {
 	return &userQueryRepository{
-		db: db,
-		es: es,
+		db:  db,
+		es:  es,
+		rdb: rdb,
 	}
 }
 
 func (uqr *userQueryRepository) GetUserByID(id string) (entity.User, error) {
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"match": map[string]interface{}{
-				"id": id,
-			},
-		},
-	}
+    cacheKey := "user:id:" + id
+    cachedUser, err := uqr.rdb.Get(context.Background(), cacheKey).Result()
+    if err == nil && cachedUser != "" {
+        var user entity.User
+        if err := json.Unmarshal([]byte(cachedUser), &user); err != nil {
+            return entity.User{}, err
+        }
+        return user, nil
+    }
 
-	var user entity.User
-	res, err := uqr.es.Search(
-		uqr.es.Search.WithContext(context.Background()),
-		uqr.es.Search.WithIndex("users"),
-		uqr.es.Search.WithBody(validator.JSONReader(query)),
-		uqr.es.Search.WithTrackTotalHits(true),
-	)
-	if err != nil {
-		return entity.User{}, err
-	}
-	defer res.Body.Close()
+    query := map[string]interface{}{
+        "query": map[string]interface{}{
+            "match": map[string]interface{}{
+                "id": id,
+            },
+        },
+    }
 
-	if res.IsError() {
-		var e map[string]interface{}
-		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-			return entity.User{}, err
-		} else {
-			return entity.User{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
-		}
-	}
+    var user entity.User
+    res, err := uqr.es.Search(
+        uqr.es.Search.WithContext(context.Background()),
+        uqr.es.Search.WithIndex("users"),
+        uqr.es.Search.WithBody(validator.JSONReader(query)),
+        uqr.es.Search.WithTrackTotalHits(true),
+    )
+    if err != nil {
+        return entity.User{}, err
+    }
+    defer res.Body.Close()
 
-	var r map[string]interface{}
-	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-		return entity.User{}, err
-	}
+    if res.IsError() {
+        var e map[string]interface{}
+        if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
+            return entity.User{}, err
+        } else {
+            return entity.User{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
+        }
+    }
 
-	if hits := r["hits"].(map[string]interface{})["hits"].([]interface{}); len(hits) > 0 {
-		source := hits[0].(map[string]interface{})["_source"].(map[string]interface{})
-		user = entity.User{
-			ID:              source["id"].(string),
-			Fullname:        source["fullname"].(string),
-			Email:           source["email"].(string),
-			Password:        source["password"].(string),
-			NewPassword:     source["newPassword"].(string),
-			ConfirmPassword: source["confirmPassword"].(string),
-			ProfilePicture:  source["profilePicture"].(string),
-			Birthdate:       source["birthdate"].(string),
-			Gender:          source["gender"].(string),
-			BloodType:       source["bloodType"].(string),
-			Height:          int(source["height"].(float64)),
-			Weight:          int(source["weight"].(float64)),
-			Role:            source["role"].(string),
-			OTP:             source["otp"].(string),
-			OTPExpiration:   int64(source["otpExpiration"].(float64)),
-			VerifyAccount:   source["verifyAccount"].(string),
-			IsVerified:      source["isVerified"].(bool),
-			CreatedAt:       time.Unix(int64(source["createdAt"].(float64)), 0),
-			UpdatedAt:       time.Unix(int64(source["updatedAt"].(float64)), 0),
-			DeletedAt:       validator.ConvertToTime(source["deletedAt"]),
-		}
-		return user, nil
-	}
+    var r map[string]interface{}
+    if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
+        return entity.User{}, err
+    }
 
-	userModel := model.User{}
-	result := uqr.db.Where("id = ?", id).First(&userModel)
-	if result.Error != nil {
-		return entity.User{}, result.Error
-	}
+    if hits := r["hits"].(map[string]interface{})["hits"].([]interface{}); len(hits) > 0 {
+        source := hits[0].(map[string]interface{})["_source"].(map[string]interface{})
+        user = entity.User{
+            ID:              source["id"].(string),
+            Fullname:        source["fullname"].(string),
+            Email:           source["email"].(string),
+            Password:        source["password"].(string),
+            NewPassword:     source["newPassword"].(string),
+            ConfirmPassword: source["confirmPassword"].(string),
+            ProfilePicture:  source["profilePicture"].(string),
+            Birthdate:       source["birthdate"].(string),
+            Gender:          source["gender"].(string),
+            BloodType:       source["bloodType"].(string),
+            Height:          int(source["height"].(float64)),
+            Weight:          int(source["weight"].(float64)),
+            Role:            source["role"].(string),
+            OTP:             source["otp"].(string),
+            OTPExpiration:   int64(source["otpExpiration"].(float64)),
+            CreatedAt:       time.Unix(int64(source["createdAt"].(float64)), 0),
+            UpdatedAt:       time.Unix(int64(source["updatedAt"].(float64)), 0),
+            DeletedAt:       validator.ConvertToTime(source["deletedAt"]),
+        }
 
-	if result.RowsAffected == 0 {
-		return entity.User{}, errors.New(constant.ERROR_ID_NOTFOUND)
-	}
+        userData, err := json.Marshal(user)
+        if err == nil {
+            uqr.rdb.Set(context.Background(), cacheKey, string(userData), 10*time.Minute)
+        }
 
-	userEntity := entity.UserModelToUserEntity(userModel)
-	return userEntity, nil
+        return user, nil
+    }
+
+    userModel := model.User{}
+    result := uqr.db.Where("id = ?", id).First(&userModel)
+    if result.Error != nil {
+        return entity.User{}, result.Error
+    }
+
+    if result.RowsAffected == 0 {
+        return entity.User{}, errors.New(constant.ERROR_ID_NOTFOUND)
+    }
+
+    userEntity := entity.UserModelToUserEntity(userModel)
+
+    userData, err := json.Marshal(userEntity)
+    if err == nil {
+        uqr.rdb.Set(context.Background(), cacheKey, string(userData), 10*time.Minute)
+    }
+
+    return userEntity, nil
 }
 
 func (uqr *userQueryRepository) GetUserByEmail(email string) (entity.User, error) {
+    cacheKey := "user:email:" + email
+    cachedUser, err := uqr.rdb.Get(context.Background(), cacheKey).Result()
+    if err == nil && cachedUser != "" {
+        var user entity.User
+        if err := json.Unmarshal([]byte(cachedUser), &user); err != nil {
+            return entity.User{}, err
+        }
+        return user, nil
+    }
+
     query := map[string]interface{}{
         "query": map[string]interface{}{
             "match": map[string]interface{}{
@@ -140,27 +173,31 @@ func (uqr *userQueryRepository) GetUserByEmail(email string) (entity.User, error
     if hits := r["hits"].(map[string]interface{})["hits"].([]interface{}); len(hits) > 0 {
         source := hits[0].(map[string]interface{})["_source"].(map[string]interface{})
         user = entity.User{
-			ID:              source["id"].(string),
-			Fullname:        source["fullname"].(string),
-			Email:           source["email"].(string),
-			Password:        source["password"].(string),
-			NewPassword:     source["newPassword"].(string),
-			ConfirmPassword: source["confirmPassword"].(string),
-			ProfilePicture:  source["profilePicture"].(string),
-			Birthdate:       source["birthdate"].(string),
-			Gender:          source["gender"].(string),
-			BloodType:       source["bloodType"].(string),
-			Height:          int(source["height"].(float64)),
-			Weight:          int(source["weight"].(float64)),
-			Role:            source["role"].(string),
-			OTP:             source["otp"].(string),
-			OTPExpiration:   int64(source["otpExpiration"].(float64)),
-			VerifyAccount:   source["verifyAccount"].(string),
-			IsVerified:      source["isVerified"].(bool),
-			CreatedAt:       time.Unix(int64(source["createdAt"].(float64)), 0),
-			UpdatedAt:       time.Unix(int64(source["updatedAt"].(float64)), 0),
-			DeletedAt:       validator.ConvertToTime(source["deletedAt"]),
+            ID:              source["id"].(string),
+            Fullname:        source["fullname"].(string),
+            Email:           source["email"].(string),
+            Password:        source["password"].(string),
+            NewPassword:     source["newPassword"].(string),
+            ConfirmPassword: source["confirmPassword"].(string),
+            ProfilePicture:  source["profilePicture"].(string),
+            Birthdate:       source["birthdate"].(string),
+            Gender:          source["gender"].(string),
+            BloodType:       source["bloodType"].(string),
+            Height:          int(source["height"].(float64)),
+            Weight:          int(source["weight"].(float64)),
+            Role:            source["role"].(string),
+            OTP:             source["otp"].(string),
+            OTPExpiration:   int64(source["otpExpiration"].(float64)),
+            CreatedAt:       time.Unix(int64(source["createdAt"].(float64)), 0),
+            UpdatedAt:       time.Unix(int64(source["updatedAt"].(float64)), 0),
+            DeletedAt:       validator.ConvertToTime(source["deletedAt"]),
         }
+
+        userData, err := json.Marshal(user)
+        if err == nil {
+            uqr.rdb.Set(context.Background(), cacheKey, string(userData), 10*time.Minute)
+        }
+
         return user, nil
     }
 
@@ -176,6 +213,12 @@ func (uqr *userQueryRepository) GetUserByEmail(email string) (entity.User, error
     }
 
     userEntity := entity.UserModelToUserEntity(userModel)
+
+    userData, err := json.Marshal(userEntity)
+    if err == nil {
+        uqr.rdb.Set(context.Background(), cacheKey, string(userData), 10*time.Minute)
+    }
+
     return userEntity, nil
 }
 

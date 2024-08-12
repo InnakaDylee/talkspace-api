@@ -2,13 +2,14 @@ package routes
 
 import (
 	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 
 	ur "talkspace-api/modules/user/router"
 )
 
-func SetupRoutes(e *echo.Echo, db *gorm.DB, es *elasticsearch.Client) {
+func SetupRoutes(e *echo.Echo, db *gorm.DB, es *elasticsearch.Client, rdb *redis.Client) {
 
 	user := e.Group("/users")
 	// doctor := e.Group("/doctors")
@@ -16,7 +17,7 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB, es *elasticsearch.Client) {
 	// consultation := e.Group("/consultations")
 	// chatbot := e.Group("/talkbots")
 
-	ur.UserRoutes(user, db, es)
+	ur.UserRoutes(user, db, es, rdb)
 	// DoctorRoutes(doctor, db, rdb)
 	// TransactionRoutes(transaction, db, rdb)
 	// ConsultationRoutes(consultation, db, rdb)

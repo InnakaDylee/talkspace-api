@@ -9,23 +9,27 @@ import (
 	"talkspace-api/modules/user/model"
 	"talkspace-api/utils/bcrypt"
 	"talkspace-api/utils/constant"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
-
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 type userCommandRepository struct {
-	db *gorm.DB
-	es *elasticsearch.Client
+	db  *gorm.DB
+	es  *elasticsearch.Client
+	rdb *redis.Client
 }
 
-func NewUserCommandRepository(db *gorm.DB, es *elasticsearch.Client) UserCommandRepositoryInterface {
+func NewUserCommandRepository(db *gorm.DB, es *elasticsearch.Client, rdb *redis.Client) UserCommandRepositoryInterface {
 	return &userCommandRepository{
-		db: db,
-		es: es,
+		db:  db,
+		es:  es,
+		rdb: rdb,
 	}
 }
+
 func (ucr *userCommandRepository) RegisterUser(user entity.User) (entity.User, error) {
 	userModel := entity.UserEntityToUserModel(user)
 
@@ -60,29 +64,53 @@ func (ucr *userCommandRepository) RegisterUser(user entity.User) (entity.User, e
 		}
 	}
 
+	cacheKey := "user:" + userEntity.ID
+	err = ucr.rdb.Set(context.Background(), cacheKey, data, 24*time.Hour).Err()
+	if err != nil {
+		return entity.User{}, err
+	}
+
 	return userEntity, nil
 }
+
 
 func (ucr *userCommandRepository) LoginUser(email, password string) (entity.User, error) {
-	userModel := model.User{}
+	cacheKey := "user:" + email
 
-	result := ucr.db.Where("email = ?", email).First(&userModel)
-	if result.Error != nil {
-		return entity.User{}, result.Error
+	cachedData, err := ucr.rdb.Get(context.Background(), cacheKey).Result()
+	if err == redis.Nil {
+		userModel := model.User{}
+
+		result := ucr.db.Where("email = ?", email).First(&userModel)
+		if result.Error != nil {
+			return entity.User{}, result.Error
+		}
+
+		if errComparePass := bcrypt.ComparePassword(userModel.Password, password); errComparePass != nil {
+			return entity.User{}, errors.New(constant.ERROR_PASSWORD_INVALID)
+		}
+
+		userEntity := entity.UserModelToUserEntity(userModel)
+
+		data, _ := json.Marshal(userEntity)
+		err = ucr.rdb.Set(context.Background(), cacheKey, data, 24*time.Hour).Err()
+		if err != nil {
+			return entity.User{}, err
+		}
+
+		return userEntity, nil
+	} else if err != nil {
+		return entity.User{}, err
 	}
 
-	if result.RowsAffected == 0 {
-		return entity.User{}, errors.New(constant.ERROR_EMAIL_NOTFOUND)
+	userEntity := entity.User{}
+	if err := json.Unmarshal([]byte(cachedData), &userEntity); err != nil {
+		return entity.User{}, err
 	}
-
-	if errComparePass := bcrypt.ComparePassword(userModel.Password, password); errComparePass != nil {
-		return entity.User{}, errors.New(constant.ERROR_PASSWORD_INVALID)
-	}
-
-	userEntity := entity.UserModelToUserEntity(userModel)
 
 	return userEntity, nil
 }
+
 
 func (ucr *userCommandRepository) UpdateUserByID(id string, user entity.User) (entity.User, error) {
 	userModel := entity.UserEntityToUserModel(user)
@@ -122,49 +150,66 @@ func (ucr *userCommandRepository) UpdateUserByID(id string, user entity.User) (e
 		}
 	}
 
+	cacheKey := "user:" + id
+	err = ucr.rdb.Set(context.Background(), cacheKey, data, 24*time.Hour).Err()
+	if err != nil {
+		return entity.User{}, err
+	}
+
 	return userEntity, nil
 }
 
-
 func (ucr *userCommandRepository) SendUserOTP(email string, otp string, expired int64) (entity.User, error) {
-	userModel := model.User{}
+    userModel := model.User{}
 
-	result := ucr.db.Where("email = ?", email).First(&userModel)
-	if result.Error != nil {
-		if result.RowsAffected == 0 {
-			return entity.User{}, errors.New(constant.ERROR_EMAIL_NOTFOUND)
-		}
-		return entity.User{}, result.Error
-	}
+    result := ucr.db.Where("email = ?", email).First(&userModel)
+    if result.Error != nil {
+        if result.RowsAffected == 0 {
+            return entity.User{}, errors.New(constant.ERROR_EMAIL_NOTFOUND)
+        }
+        return entity.User{}, result.Error
+    }
 
-	userModel.OTP = otp
-	userModel.OTPExpiration = expired
+    cacheKey := "otp:" + email
+    err := ucr.rdb.Set(context.Background(), cacheKey, otp, time.Duration(expired)*time.Second).Err()
+    if err != nil {
+        return entity.User{}, err
+    }
 
-	errUpdate := ucr.db.Save(&userModel).Error
-	if errUpdate != nil {
-		return entity.User{}, errUpdate
-	}
+    userModel.OTP = otp
+    userModel.OTPExpiration = expired
 
-	userEntity := entity.UserModelToUserEntity(userModel)
+    errUpdate := ucr.db.Save(&userModel).Error
+    if errUpdate != nil {
+        return entity.User{}, errUpdate
+    }
 
-	return userEntity, nil
+    userEntity := entity.UserModelToUserEntity(userModel)
+
+    return userEntity, nil
 }
 
 func (ucr *userCommandRepository) VerifyUserOTP(email, otp string) (entity.User, error) {
-	userModel := model.User{}
+    cacheKey := "otp:" + email
 
-	result := ucr.db.Where("otp = ? AND email = ?", otp, email).First(&userModel)
-	if result.Error != nil {
-		return entity.User{}, result.Error
-	}
+    cachedOTP, err := ucr.rdb.Get(context.Background(), cacheKey).Result()
+    if err == redis.Nil || cachedOTP != otp {
+        return entity.User{}, errors.New(constant.ERROR_EMAIL_OTP)
+    } else if err != nil {
+        return entity.User{}, err
+    }
 
-	if result.RowsAffected == 0 {
-		return entity.User{}, errors.New(constant.ERROR_EMAIL_OTP)
-	}
+    userModel := model.User{}
+    result := ucr.db.Where("otp = ? AND email = ?", otp, email).First(&userModel)
+    if result.Error != nil {
+        return entity.User{}, result.Error
+    }
 
-	userEntity := entity.UserModelToUserEntity(userModel)
+    userEntity := entity.UserModelToUserEntity(userModel)
 
-	return userEntity, nil
+    ucr.rdb.Del(context.Background(), cacheKey)
+
+    return userEntity, nil
 }
 
 func (ucr *userCommandRepository) ResetUserOTP(otp string) (entity.User, error) {
