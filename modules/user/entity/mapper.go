@@ -3,14 +3,26 @@ package entity
 import "talkspace-api/modules/user/model"
 
 func UserEntityToUserModel(userEntity User) model.User {
+	var gender *string
+	if userEntity.Gender != "" {
+		genderValue := userEntity.Gender
+		gender = &genderValue
+	}
+
+	var bloodType *string
+	if userEntity.BloodType != "" {
+		bloodTypeValue := userEntity.BloodType
+		bloodType = &bloodTypeValue
+	}
+
 	userModel := model.User{
 		Fullname:       userEntity.Fullname,
 		Email:          userEntity.Email,
 		Password:       userEntity.Password,
 		ProfilePicture: userEntity.ProfilePicture,
 		Birthdate:      userEntity.Birthdate,
-		Gender:         userEntity.Gender,
-		BloodType:      userEntity.BloodType,
+		Gender:         gender,
+		BloodType:      bloodType,
 		Height:         userEntity.Height,
 		Weight:         userEntity.Weight,
 		OTP:            userEntity.OTP,
@@ -29,6 +41,15 @@ func ListUserEntityToUserModel(userEntity []User) []model.User {
 }
 
 func UserModelToUserEntity(userModel model.User) User {
+	var gender string
+	if userModel.Gender != nil {
+		gender = *userModel.Gender
+	}
+
+	var bloodType string
+	if userModel.BloodType != nil {
+		bloodType = *userModel.BloodType
+	}
 	userEntity := User{
 		ID:             userModel.ID,
 		Fullname:       userModel.Fullname,
@@ -36,8 +57,8 @@ func UserModelToUserEntity(userModel model.User) User {
 		Password:       userModel.Password,
 		ProfilePicture: userModel.ProfilePicture,
 		Birthdate:      userModel.Birthdate,
-		Gender:         userModel.Gender,
-		BloodType:      userModel.BloodType,
+		Gender:         gender,
+		BloodType:      bloodType,
 		Height:         userModel.Height,
 		Weight:         userModel.Weight,
 		OTP:            userModel.OTP,
