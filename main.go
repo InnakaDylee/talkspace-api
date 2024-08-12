@@ -50,7 +50,7 @@ func main() {
 	middlewares.Recover(e)
 	middlewares.CORS(e)
 
-	routes.SetupRoutes(e, pdb, es)
+	routes.SetupRoutes(e, pdb, es, rdb)
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
