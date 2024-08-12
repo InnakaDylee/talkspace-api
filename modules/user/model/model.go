@@ -9,8 +9,8 @@ type User struct {
 	Password       string `gorm:"not null"`
 	ProfilePicture string
 	Birthdate      string
-	Gender         string `gorm:"type:gender"`
-	BloodType      string `gorm:"type:blood_type"`
+	Gender         *string `gorm:"type:gender;default:NULL"`
+	BloodType      *string `gorm:"type:blood_type;default:NULL"`
 	Height         int
 	Weight         int
 	Role           string `gorm:"type:role;default:'user'"`
