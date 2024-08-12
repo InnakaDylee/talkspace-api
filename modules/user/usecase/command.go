@@ -24,6 +24,7 @@ func NewUserCommandUsecase(ucr repository.UserCommandRepositoryInterface, uqr re
 		userQueryRepository:   uqr,
 	}
 }
+
 func (ucs *userCommandUsecase) RegisterUser(user entity.User) (entity.User, error) {
 
 	errEmpty := validator.IsDataEmpty([]string{"fullname", "email", "password", "confirm_password"}, user.Fullname, user.Email, user.Password, user.ConfirmPassword)
