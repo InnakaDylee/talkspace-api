@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"talkspace-api/app/configs"
-	"talkspace-api/app/databases"
 	"talkspace-api/utils/constant"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -26,7 +25,6 @@ func init() {
 	if err != nil {
 		logrus.Fatalf("failed to load configuration: %v", err)
 	}
-	databases.ConnectRedis()
 }
 
 func JWTMiddleware() echo.MiddlewareFunc {
@@ -49,11 +47,6 @@ func GenerateToken(id string, role string) (string, error) {
 		return "", err
 	}
 
-	err = databases.SetToken(id, tokenString, time.Hour*24)
-	if err != nil {
-		return "", err
-	}
-
 	return tokenString, nil
 }
 
@@ -63,11 +56,6 @@ func ExtractToken(c echo.Context) (string, string, error) {
 		claims := user.Claims.(jwt.MapClaims)
 		id := claims["id"].(string)
 		role := claims["role"].(string)
-
-		tokenFromRedis, err := databases.GetToken(id)
-		if err != nil || tokenFromRedis == "" {
-			return "", "", errors.New(constant.ERROR_TOKEN_INVALID)
-		}
 
 		return id, role, nil
 	}
