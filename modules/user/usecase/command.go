@@ -57,18 +57,13 @@ func (ucs *userCommandUsecase) RegisterUser(user entity.User) (entity.User, erro
 
 	user.Password = hashedPassword
 
-	token, errGenerateVerifyToken := generator.GenerateRandomBytes()
-	if errGenerateVerifyToken != nil {
-		return entity.User{}, errors.New(constant.ERROR_TOKEN_VERIFICATION)
-	}
-	user.VerifyAccount = token
 
 	userEntity, errRegister := ucs.userCommandRepository.RegisterUser(user)
 	if errRegister != nil {
 		return entity.User{}, errRegister
 	}
 
-	mailer.SendEmailVerificationAccount(userEntity.Email, token)
+	mailer.SendEmailNotificationRegisterAccount(userEntity.Email)
 
 	return userEntity, nil
 }
