@@ -1,8 +1,10 @@
 package databases
 
 import (
+	"crypto/tls"
 	"log"
 	"talkspace-api/app/configs"
+	"net/http"
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/sirupsen/logrus"
@@ -18,6 +20,9 @@ func ConnectElasticsearch() *elasticsearch.Client {
 		Addresses: []string{config.ELASTICSEARCH.ELASTICSEARCH_URL},
 		Username:  config.ELASTICSEARCH.ELASTICSEARCH_USER,
 		Password:  config.ELASTICSEARCH.ELASTICSEARCH_PASS,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
 	})
 
 	if err != nil {
@@ -30,7 +35,6 @@ func ConnectElasticsearch() *elasticsearch.Client {
 	}
 	defer res.Body.Close()
 
-	// log.Printf("Elasticsearch Info: %s", res)
 	logrus.Info("connected to Elasticsearch")
 
 	return es
