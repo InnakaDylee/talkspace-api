@@ -18,8 +18,6 @@ type User struct {
 	Role            string
 	OTP             string
 	OTPExpiration   int64
-	VerifyAccount   string
-	IsVerified      bool
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	DeletedAt       *time.Time
