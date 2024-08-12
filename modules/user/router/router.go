@@ -22,13 +22,13 @@ func UserRoutes(e *echo.Group, db *gorm.DB, es *elasticsearch.Client, rdb *redis
 	userHandler := handler.NewUserHandler(userCommandUsecase, userQueryUsecase)
 
 	account := e.Group("/account")
-	account.POST("register", userHandler.RegisterUser)
-	account.POST("login", userHandler.LoginUser)
+	account.POST("/register", userHandler.RegisterUser)
+	account.POST("/login", userHandler.LoginUser)
 
 	password := e.Group("/password")
-	password.POST("forgot-password", userHandler.ForgotUserPassword)
-	password.POST("verify-otp", userHandler.VerifyUserOTP)
-	password.PATCH("new-password", userHandler.NewUserPassword, middlewares.JWTMiddleware())
+	password.POST("/forgot-password", userHandler.ForgotUserPassword)
+	password.POST("/verify-otp", userHandler.VerifyUserOTP)
+	password.PATCH("/new-password", userHandler.NewUserPassword, middlewares.JWTMiddleware())
 	password.PATCH("/change-password", userHandler.UpdateUserPassword, middlewares.JWTMiddleware())
 
 	profile := e.Group("/profile", middlewares.JWTMiddleware())
