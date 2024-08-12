@@ -44,7 +44,7 @@ func EmailNotificationAccount(to []string, template string, data interface{}) (b
 	return true, nil
 }
 
-func SendEmailNotificationRegisterAccount(emailAddress string) {
+func SendEmailNotificationRegisterAccount(email string) {
 	go func() {
 
 		filePath := "utils/helper/email/template/register-success.html"
@@ -54,14 +54,14 @@ func SendEmailNotificationRegisterAccount(emailAddress string) {
 			return
 		}
 
-		_, errEmail := EmailNotificationAccount([]string{emailAddress}, string(emailTemplate), "")
+		_, errEmail := EmailNotificationAccount([]string{email}, string(emailTemplate), "")
 		if errEmail != nil {
 			log.Printf("failed to send notification email: %v", errEmail)
 		}
 	}()
 }
 
-func SendEmailNotificationLoginAccount(emailAddress string) {
+func SendEmailNotificationLoginAccount(email string) {
 	go func() {
 
 		filePath := "utils/helper/email/template/login-success.html"
@@ -71,7 +71,7 @@ func SendEmailNotificationLoginAccount(emailAddress string) {
 			return
 		}
 
-		_, errEmail := EmailNotificationAccount([]string{emailAddress}, string(emailTemplate), "")
+		_, errEmail := EmailNotificationAccount([]string{email}, string(emailTemplate), "")
 		if errEmail != nil {
 			log.Printf("failed to send notification email: %v", errEmail)
 		}
