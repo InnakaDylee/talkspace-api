@@ -25,6 +25,7 @@ func UserEntityToUserModel(userEntity User) model.User {
 		BloodType:      bloodType,
 		Height:         userEntity.Height,
 		Weight:         userEntity.Weight,
+		Role:           userEntity.Role,
 		OTP:            userEntity.OTP,
 		OTPExpiration:  userEntity.OTPExpiration,
 	}
@@ -61,6 +62,7 @@ func UserModelToUserEntity(userModel model.User) User {
 		BloodType:      bloodType,
 		Height:         userModel.Height,
 		Weight:         userModel.Weight,
+		Role:           userModel.Role,
 		OTP:            userModel.OTP,
 		OTPExpiration:  userModel.OTPExpiration,
 		CreatedAt:      userModel.CreatedAt,
