@@ -7,16 +7,19 @@ import (
 
 	um "talkspace-api/modules/user/model"
 	dm "talkspace-api/modules/doctor/model"
+	tm "talkspace-api/modules/transaction/model"
 )
 
 func Migration(db *gorm.DB) {
 	db.AutoMigrate(
 		&um.User{},
 		&dm.Doctor{},
+		&tm.Transaction{},
+
 	)
 
 	migrator := db.Migrator()
-	tables := []string{"users", "doctors", "admins", "consultations", "transactions", "chatbots"}
+	tables := []string{"users", "doctors", "admins", "transactions"} // "chatbots", "consultations"
 	for _, table := range tables {
 		if !migrator.HasTable(table) {
 			log.Fatalf("table %s was not successfully created", table)
