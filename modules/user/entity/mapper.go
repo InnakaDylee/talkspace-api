@@ -16,6 +16,7 @@ func UserEntityToUserModel(userEntity User) model.User {
 	}
 
 	userModel := model.User{
+		ID:             userEntity.ID,
 		Fullname:       userEntity.Fullname,
 		Email:          userEntity.Email,
 		Password:       userEntity.Password,
@@ -28,6 +29,9 @@ func UserEntityToUserModel(userEntity User) model.User {
 		Role:           userEntity.Role,
 		OTP:            userEntity.OTP,
 		OTPExpiration:  userEntity.OTPExpiration,
+		CreatedAt:      userEntity.CreatedAt,
+		UpdatedAt:      userEntity.UpdatedAt,
+		DeletedAt:      userEntity.DeletedAt,
 	}
 	return userModel
 }
