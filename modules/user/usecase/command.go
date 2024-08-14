@@ -111,9 +111,11 @@ func (ucs *userCommandUsecase) UpdateUserByID(id string, user entity.User) (enti
 		return entity.User{}, errGetID
 	}
 
-	errEmailValid := validator.IsEmailValid(user.Email)
-	if errEmailValid != nil {
-		return entity.User{}, errEmailValid
+	if user.Email != "" {
+		errEmailValid := validator.IsEmailValid(user.Email)
+		if errEmailValid != nil {
+			return entity.User{}, errEmailValid
+		}
 	}
 
 	errBirthdate := validator.IsDateValid(user.Birthdate)
