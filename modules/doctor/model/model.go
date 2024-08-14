@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	tm "talkspace-api/modules/transaction/model"
+)
 
 type Doctor struct {
 	ID             string  `gorm:"primarykey"`
@@ -22,5 +26,6 @@ type Doctor struct {
 	OTPExpiration  int64
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
-	DeletedAt      *time.Time `gorm:"index"`
+	DeletedAt      *time.Time       `gorm:"index"`
+	Transaction    []tm.Transaction `gorm:"foreignKey:DoctorID"`
 }
