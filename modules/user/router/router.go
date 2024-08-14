@@ -28,10 +28,10 @@ func UserRoutes(e *echo.Group, db *gorm.DB, es *elasticsearch.Client, rdb *redis
 	password := e.Group("/password")
 	password.POST("/forgot-password", userHandler.ForgotUserPassword)
 	password.POST("/verify-otp", userHandler.VerifyUserOTP)
-	password.PATCH("/new-password", userHandler.NewUserPassword, middlewares.JWTMiddleware())
-	password.PATCH("/change-password", userHandler.UpdateUserPassword, middlewares.JWTMiddleware())
+	password.PATCH("/new-password", userHandler.NewUserPassword, middlewares.JWTMiddleware(true))
+	password.PATCH("/change-password", userHandler.UpdateUserPassword, middlewares.JWTMiddleware(true))
 
-	profile := e.Group("/profile", middlewares.JWTMiddleware())
+	profile := e.Group("/profile", middlewares.JWTMiddleware(false))
 	profile.GET("/:user_id", userHandler.GetUserByID)
 	profile.PUT("/:user_id", userHandler.UpdateUserByID)
 }
