@@ -101,12 +101,12 @@ func (dh *doctorHandler) RegisterDoctor(c echo.Context) error {
 
 	doctorRequest := dto.DoctorRegisterRequest{}
 
-	if err := c.Bind(&doctorRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(err.Error()))
+	if errBind := c.Bind(&doctorRequest); errBind != nil {
+		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errBind.Error()))
 	}
 
-	image, err := c.FormFile("profile_picture")
-	if err != nil && err != http.ErrMissingFile {
+	image, errFile := c.FormFile("profile_picture")
+	if errFile != nil && errFile != http.ErrMissingFile {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(constant.ERROR_UPLOAD_IMAGE))
 	}
 
@@ -174,8 +174,8 @@ func (dh *doctorHandler) UpdateDoctorProfile(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errBind.Error()))
 	}
 
-	image, err := c.FormFile("profile_picture")
-	if err != nil && err != http.ErrMissingFile {
+	image, errFile := c.FormFile("profile_picture")
+	if errFile != nil && errFile != http.ErrMissingFile {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(constant.ERROR_UPLOAD_IMAGE))
 	}
 
