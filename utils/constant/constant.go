@@ -21,6 +21,7 @@ const (
 	SUCCESS_OTP_SENT          = "otp sent successfully"
 	SUCCESS_OTP_VERIFIED      = "otp verification successfully"
 	SUCCESS_VERIFICATION      = "verification successfully"
+	SUCCESS_STATUS_UPDATED    = "status updated successfully"
 )
 
 // Error
@@ -62,4 +63,7 @@ const (
 	ERROR_TEMPLATE_FILE        = "invalid template file"
 	ERROR_TEMPLATE_READER      = "failed to read email template"
 	ERROR_ROLE_ACCESS          = "not authorized to access this resource"
+	ERROR_STATUS_INVALID       = "invalid status"
+	ERROR_UPLOAD_IMAGE         = "failed to upload profile picture"
+	ERROR_UPLOAD_IMAGE_S3 	   = "failed to upload profile picture to s3"
 )
