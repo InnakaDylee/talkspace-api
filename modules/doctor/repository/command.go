@@ -32,6 +32,56 @@ func NewDoctorCommandRepository(db *gorm.DB, es *elasticsearch.Client, rdb *redi
 	}
 }
 
+func (dcr *doctorCommandRepository) RegisterDoctor(doctor entity.Doctor, image *multipart.FileHeader) (entity.Doctor, error) {
+	doctorModel := entity.DoctorEntityToDoctorModel(doctor)
+
+	result := dcr.db.Create(&doctorModel)
+	if result.Error != nil {
+		return entity.Doctor{}, result.Error
+	}
+
+	doctorEntity := entity.DoctorModelToDoctorEntity(doctorModel)
+
+	imageURL, errUpload := cloud.UploadImageToS3(image)
+	if errUpload != nil {
+		return entity.Doctor{}, errUpload
+	}
+	doctorModel.ProfilePicture = imageURL
+
+	data, err := json.Marshal(doctorEntity)
+	if err != nil {
+		return entity.Doctor{}, err
+	}
+
+	res, err := dcr.es.Index(
+		"doctors",
+		bytes.NewReader(data),
+		dcr.es.Index.WithContext(context.Background()),
+		dcr.es.Index.WithDocumentID(doctorEntity.ID),
+	)
+	if err != nil {
+		return entity.Doctor{}, err
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		var e map[string]interface{}
+		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
+			return entity.Doctor{}, err
+		} else {
+			return entity.Doctor{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
+		}
+	}
+
+	cacheKey := "doctor:" + doctorEntity.ID
+	err = dcr.rdb.Set(context.Background(), cacheKey, data, 24*time.Hour).Err()
+	if err != nil {
+		return entity.Doctor{}, err
+	}
+
+	return doctorEntity, nil
+}
+
 func (dcr *doctorCommandRepository) LoginDoctor(email, password string) (entity.Doctor, error) {
 	cacheKey := "doctor:" + email
 
@@ -72,13 +122,11 @@ func (dcr *doctorCommandRepository) LoginDoctor(email, password string) (entity.
 func (dcr *doctorCommandRepository) UpdateDoctorProfile(id string, doctor entity.Doctor, image *multipart.FileHeader) (entity.Doctor, error) {
 	doctorModel := entity.DoctorEntityToDoctorModel(doctor)
 
-	if image != nil {
-		imageURL, errUpload := cloud.UploadImageToS3(image)
-		if errUpload != nil {
-			return entity.Doctor{}, errUpload
-		}
-		doctorModel.ProfilePicture = imageURL
+	imageURL, errUpload := cloud.UploadImageToS3(image)
+	if errUpload != nil {
+		return entity.Doctor{}, errUpload
 	}
+	doctorModel.ProfilePicture = imageURL
 
 	result := dcr.db.Where("id = ?", id).Updates(&doctorModel)
 	if result.Error != nil {
