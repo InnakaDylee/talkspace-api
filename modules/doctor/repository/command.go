@@ -5,10 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"mime/multipart"
 	"talkspace-api/modules/doctor/entity"
 	"talkspace-api/modules/doctor/model"
 	"talkspace-api/utils/bcrypt"
 	"talkspace-api/utils/constant"
+	"talkspace-api/utils/helper/cloud"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
@@ -67,8 +69,16 @@ func (dcr *doctorCommandRepository) LoginDoctor(email, password string) (entity.
 	return doctorEntity, nil
 }
 
-func (dcr *doctorCommandRepository) UpdateDoctorProfile(id string, doctor entity.Doctor) (entity.Doctor, error) {
+func (dcr *doctorCommandRepository) UpdateDoctorProfile(id string, doctor entity.Doctor, image *multipart.FileHeader) (entity.Doctor, error) {
 	doctorModel := entity.DoctorEntityToDoctorModel(doctor)
+
+	if image != nil {
+		imageURL, errUpload := cloud.UploadImageToS3(image)
+		if errUpload != nil {
+			return entity.Doctor{}, errUpload
+		}
+		doctorModel.ProfilePicture = imageURL
+	}
 
 	result := dcr.db.Where("id = ?", id).Updates(&doctorModel)
 	if result.Error != nil {
@@ -167,58 +177,57 @@ func (dcr *doctorCommandRepository) UpdateDoctorStatus(id string, status bool) (
 	return doctorEntity, nil
 }
 
-
 func (dcr *doctorCommandRepository) SendDoctorOTP(email string, otp string, expired int64) (entity.Doctor, error) {
-    doctorModel := model.Doctor{}
+	doctorModel := model.Doctor{}
 
-    result := dcr.db.Where("email = ?", email).First(&doctorModel)
-    if result.Error != nil {
-        if result.RowsAffected == 0 {
-            return entity.Doctor{}, errors.New(constant.ERROR_EMAIL_NOTFOUND)
-        }
-        return entity.Doctor{}, result.Error
-    }
+	result := dcr.db.Where("email = ?", email).First(&doctorModel)
+	if result.Error != nil {
+		if result.RowsAffected == 0 {
+			return entity.Doctor{}, errors.New(constant.ERROR_EMAIL_NOTFOUND)
+		}
+		return entity.Doctor{}, result.Error
+	}
 
-    cacheKey := "otp:" + email
-    err := dcr.rdb.Set(context.Background(), cacheKey, otp, time.Duration(expired)*time.Second).Err()
-    if err != nil {
-        return entity.Doctor{}, err
-    }
+	cacheKey := "otp:" + email
+	err := dcr.rdb.Set(context.Background(), cacheKey, otp, time.Duration(expired)*time.Second).Err()
+	if err != nil {
+		return entity.Doctor{}, err
+	}
 
-    doctorModel.OTP = otp
-    doctorModel.OTPExpiration = expired
+	doctorModel.OTP = otp
+	doctorModel.OTPExpiration = expired
 
-    errUpdate := dcr.db.Save(&doctorModel).Error
-    if errUpdate != nil {
-        return entity.Doctor{}, errUpdate
-    }
+	errUpdate := dcr.db.Save(&doctorModel).Error
+	if errUpdate != nil {
+		return entity.Doctor{}, errUpdate
+	}
 
-    doctorEntity := entity.DoctorModelToDoctorEntity(doctorModel)
+	doctorEntity := entity.DoctorModelToDoctorEntity(doctorModel)
 
-    return doctorEntity, nil
+	return doctorEntity, nil
 }
 
 func (dcr *doctorCommandRepository) VerifyDoctorOTP(email, otp string) (entity.Doctor, error) {
-    cacheKey := "otp:" + email
+	cacheKey := "otp:" + email
 
-    cachedOTP, err := dcr.rdb.Get(context.Background(), cacheKey).Result()
-    if err == redis.Nil || cachedOTP != otp {
-        return entity.Doctor{}, errors.New(constant.ERROR_EMAIL_OTP)
-    } else if err != nil {
-        return entity.Doctor{}, err
-    }
+	cachedOTP, err := dcr.rdb.Get(context.Background(), cacheKey).Result()
+	if err == redis.Nil || cachedOTP != otp {
+		return entity.Doctor{}, errors.New(constant.ERROR_EMAIL_OTP)
+	} else if err != nil {
+		return entity.Doctor{}, err
+	}
 
-    doctorModel := model.Doctor{}
-    result := dcr.db.Where("otp = ? AND email = ?", otp, email).First(&doctorModel)
-    if result.Error != nil {
-        return entity.Doctor{}, result.Error
-    }
+	doctorModel := model.Doctor{}
+	result := dcr.db.Where("otp = ? AND email = ?", otp, email).First(&doctorModel)
+	if result.Error != nil {
+		return entity.Doctor{}, result.Error
+	}
 
-    doctorEntity := entity.DoctorModelToDoctorEntity(doctorModel)
+	doctorEntity := entity.DoctorModelToDoctorEntity(doctorModel)
 
-    dcr.rdb.Del(context.Background(), cacheKey)
+	dcr.rdb.Del(context.Background(), cacheKey)
 
-    return doctorEntity, nil
+	return doctorEntity, nil
 }
 
 func (dcr *doctorCommandRepository) ResetDoctorOTP(otp string) (entity.Doctor, error) {
@@ -264,7 +273,7 @@ func (dcr *doctorCommandRepository) UpdateDoctorPassword(id string, password ent
 	return doctorEntity, nil
 }
 
-func (dcr *doctorCommandRepository) NewDoctorPassword(email string, password entity.Doctor) (entity.Doctor, error)  {
+func (dcr *doctorCommandRepository) NewDoctorPassword(email string, password entity.Doctor) (entity.Doctor, error) {
 	doctorModel := model.Doctor{}
 
 	result := dcr.db.Where("email = ?", email).First(&doctorModel)

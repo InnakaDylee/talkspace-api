@@ -9,7 +9,6 @@ import (
 	"talkspace-api/utils/bcrypt"
 	"talkspace-api/utils/constant"
 	"talkspace-api/utils/generator"
-	"talkspace-api/utils/helper/cloud"
 	"talkspace-api/utils/helper/email/mailer"
 	"talkspace-api/utils/validator"
 	"time"
@@ -82,15 +81,7 @@ func (dcs *doctorCommandUsecase) UpdateDoctorProfile(id string, doctor entity.Do
 		return entity.Doctor{}, errGender
 	}
 
-	if image != nil {
-		imageURL, errUpload := cloud.UploadImageToS3(image)
-		if errUpload != nil {
-			return entity.Doctor{}, errUpload
-		}
-		doctor.ProfilePicture = imageURL
-	}
-
-	doctorEntity, errUpdate := dcs.doctorCommandRepository.UpdateDoctorProfile(id, doctor)
+	doctorEntity, errUpdate := dcs.doctorCommandRepository.UpdateDoctorProfile(id, doctor, image)
 	if errUpdate != nil {
 		return entity.Doctor{}, errUpdate
 	}
