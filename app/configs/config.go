@@ -42,9 +42,10 @@ type (
 	}
 
 	CloudStorageConfig struct {
-		GOOGLE_CLOUD_STORAGE_SERVICE_ACCOUNT string
-		GOOGLE_CLOUD_PROJECT_ID              string
-		GOOGLE_CLOUD_STORAGE_BUCKET          string
+		AWS_ACCESS_KEY_ID     string
+		AWS_SECRET_ACCESS_KEY string
+		AWS_REGION            string
+		AWS_BUCKET_NAME       string
 	}
 
 	MidtransConfig struct {
@@ -100,14 +101,15 @@ func LoadConfig() (*Configuration, error) {
 			REDIS_PASS: os.Getenv("REDIS_PASS"),
 		},
 		ELASTICSEARCH: ElasticsearchConfig{
-			ELASTICSEARCH_URL: os.Getenv("ELASTICSEARCH_URL"),
+			ELASTICSEARCH_URL:  os.Getenv("ELASTICSEARCH_URL"),
 			ELASTICSEARCH_USER: os.Getenv("ELASTICSEARCH_USER"),
 			ELASTICSEARCH_PASS: os.Getenv("ELASTICSEARCH_PASS"),
 		},
 		CLOUDSTORAGE: CloudStorageConfig{
-			GOOGLE_CLOUD_STORAGE_SERVICE_ACCOUNT: os.Getenv("GOOGLE_CLOUD_STORAGE_SERVICE_ACCOUNT"),
-			GOOGLE_CLOUD_PROJECT_ID:              os.Getenv("GOOGLE_CLOUD_PROJECT_ID"),
-			GOOGLE_CLOUD_STORAGE_BUCKET:          os.Getenv("GOOGLE_CLOUD_STORAGE_BUCKET"),
+			AWS_ACCESS_KEY_ID:     os.Getenv("AWS_ACCESS_KEY_ID"),
+			AWS_SECRET_ACCESS_KEY: os.Getenv("AWS_SECRET_ACCESS_KEY"),
+			AWS_REGION:            os.Getenv("AWS_REGION"),
+			AWS_BUCKET_NAME:       os.Getenv("AWS_BUCKET_NAME"),
 		},
 		MIDTRANS: MidtransConfig{
 			MIDTRANS_SERVER_KEY: os.Getenv("MIDTRANS_SERVER_KEY"),
