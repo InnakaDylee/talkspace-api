@@ -1,10 +1,13 @@
 package repository
 
-import "talkspace-api/modules/doctor/entity"
+import (
+	"mime/multipart"
+	"talkspace-api/modules/doctor/entity"
+)
 
 type DoctorCommandRepositoryInterface interface {
 	LoginDoctor(email, password string) (entity.Doctor, error)
-	UpdateDoctorProfile(id string, doctor entity.Doctor) (entity.Doctor, error)
+	UpdateDoctorProfile(id string, doctor entity.Doctor, image *multipart.FileHeader) (entity.Doctor, error)
 	UpdateDoctorStatus(id string, status bool) (entity.Doctor, error)
 	UpdateDoctorPassword(id string, password entity.Doctor) (entity.Doctor, error)
 	NewDoctorPassword(email string, password entity.Doctor) (entity.Doctor, error)
