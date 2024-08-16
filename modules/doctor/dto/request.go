@@ -1,6 +1,20 @@
 package dto
 
 type (
+	DoctorRegisterRequest struct {
+		Fullname          string `json:"fullname" form:"fullname"`
+		Email             string `json:"email" form:"email"`
+		Password          string `json:"password" form:"password"`
+		ProfilePicture    string `json:"profile_picture" form:"profile_picture"`
+		Gender            string `json:"gender" form:"gender"`
+		Specialization    string `json:"specialization" form:"specialization"`
+		YearsOfExperience string `json:"years_of_experience" form:"years_of_experience"`
+		LicenseNumber     string `json:"license_number" form:"license_number"`
+		Alumnus           string `json:"alumnus" form:"alumnus"`
+		About             string `json:"about" form:"about"`
+		Location          string `json:"location" form:"location"`
+	}
+
 	DoctorLoginRequest struct {
 		Email    string `json:"email" form:"email"`
 		Password string `json:"password" form:"password"`

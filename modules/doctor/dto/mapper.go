@@ -3,6 +3,22 @@ package dto
 import "talkspace-api/modules/doctor/entity"
 
 // Request
+func DoctorRegisterRequestToDoctorEntity(request DoctorRegisterRequest) entity.Doctor {
+	return entity.Doctor{
+		Fullname:          request.Fullname,
+		Email:             request.Email,
+		Password:          request.Password,
+		ProfilePicture:    request.ProfilePicture,
+		Gender:            request.Gender,
+		Specialization:    request.Specialization,
+		YearsOfExperience: request.YearsOfExperience,
+		LicenseNumber:     request.LicenseNumber,
+		Alumnus:           request.Alumnus,
+		About:             request.About,
+		Location:          request.Location,
+	}
+}
+
 func DoctorLoginRequestToDoctorEntity(request DoctorLoginRequest) entity.Doctor {
 	return entity.Doctor{
 		Email:    request.Email,
@@ -60,6 +76,23 @@ func DoctorVerifyOTPRequestToDoctorEntity(request DoctorVerifyOTPRequest) entity
 }
 
 // Response
+func DoctorEntityToDoctorRegisterResponse(response entity.Doctor) DoctorRegisterResponse {
+	return DoctorRegisterResponse{
+		ID:                response.ID,
+		Fullname:          response.Fullname,
+		Email:             response.Email,
+		ProfilePicture:    response.ProfilePicture,
+		Status:            response.Status,
+		Gender:            response.Gender,
+		Specialization:    response.Specialization,
+		YearsOfExperience: response.YearsOfExperience,
+		LicenseNumber:     response.LicenseNumber,
+		Alumnus:           response.Alumnus,
+		About:             response.About,
+		Location:          response.Location,
+	}
+}
+
 func DoctorEntityToDoctorLoginResponse(entity entity.Doctor, token string) DoctorLoginResponse {
 	return DoctorLoginResponse{
 		ID:       entity.ID,
@@ -116,3 +149,5 @@ func DoctorEntityToDoctorResponse(entity entity.Doctor) DoctorResponse {
 		Email:    entity.Email,
 	}
 }
+
+
