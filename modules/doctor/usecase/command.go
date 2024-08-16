@@ -26,6 +26,60 @@ func NewDoctorCommandUsecase(dcr repository.DoctorCommandRepositoryInterface, dq
 	}
 }
 
+func (dcu *doctorCommandUsecase) RegisterDoctor(doctor entity.Doctor, image *multipart.FileHeader) (entity.Doctor, error) {
+
+	errEmpty := validator.IsDataEmpty([]string{
+		"fullname", "email", "password", "profile_picture",
+		"gender", "specialization", "years_of_experience",
+		"license_number", "alumnus", "about", "location"},
+		doctor.Fullname, doctor.Email, doctor.Password,
+		doctor.ProfilePicture, doctor.Gender, doctor.Specialization,
+		doctor.YearsOfExperience, doctor.LicenseNumber, doctor.Alumnus,
+		doctor.About, doctor.Location,
+	)
+	if errEmpty != nil {
+		return entity.Doctor{}, errEmpty
+	}
+
+	errEmailValid := validator.IsEmailValid(doctor.Email)
+	if errEmailValid != nil {
+		return entity.Doctor{}, errEmailValid
+	}
+
+	_, errGetEmail := dcu.doctorQueryRepository.GetDoctorByEmail(doctor.Email)
+	if errGetEmail == nil {
+		return entity.Doctor{}, errors.New(constant.ERROR_EMAIL_EXIST)
+	}
+
+	if doctor.Password == "" {
+		password, err := generator.GenerateRandomPassword(15) 
+		if err != nil {
+			return entity.Doctor{}, err
+		}
+		doctor.Password = password
+	}
+
+	hashedPassword, errHash := bcrypt.HashPassword(doctor.Password)
+	if errHash != nil {
+		return entity.Doctor{}, errors.New(constant.ERROR_PASSWORD_HASH)
+	}
+	doctor.Password = hashedPassword
+
+	doctorEntity, errRegister := dcu.doctorCommandRepository.RegisterDoctor(doctor, image)
+	if errRegister != nil {
+		return entity.Doctor{}, errRegister
+	}
+
+	mailer.SendEmailNotificationRegisterDoctor(
+        doctorEntity.Fullname,
+        doctorEntity.LicenseNumber,
+        doctorEntity.Email,
+        doctor.Password, 
+    )
+
+	return doctorEntity, nil
+}
+
 func (dcs *doctorCommandUsecase) LoginDoctor(email, password string) (entity.Doctor, string, error) {
 
 	errEmpty := validator.IsDataEmpty([]string{"email", "password"}, email, password)
