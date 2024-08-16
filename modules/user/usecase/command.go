@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"mime/multipart"
 	"talkspace-api/middlewares"
 	"talkspace-api/modules/user/entity"
 	"talkspace-api/modules/user/repository"
@@ -58,7 +59,6 @@ func (ucs *userCommandUsecase) RegisterUser(user entity.User) (entity.User, erro
 
 	user.Password = hashedPassword
 
-
 	userEntity, errRegister := ucs.userCommandRepository.RegisterUser(user)
 	if errRegister != nil {
 		return entity.User{}, errRegister
@@ -101,7 +101,7 @@ func (ucs *userCommandUsecase) LoginUser(email, password string) (entity.User, s
 	return userEntity, token, nil
 }
 
-func (ucs *userCommandUsecase) UpdateUserByID(id string, user entity.User) (entity.User, error) {
+func (ucs *userCommandUsecase) UpdateUserProfile(id string, user entity.User, image *multipart.FileHeader) (entity.User, error) {
 	if id == "" {
 		return entity.User{}, errors.New(constant.ERROR_ID_INVALID)
 	}
@@ -135,7 +135,7 @@ func (ucs *userCommandUsecase) UpdateUserByID(id string, user entity.User) (enti
 		return entity.User{}, errBloodType
 	}
 
-	userEntity, errUpdate := ucs.userCommandRepository.UpdateUserByID(id, user)
+	userEntity, errUpdate := ucs.userCommandRepository.UpdateUserProfile(id, user, image)
 	if errUpdate != nil {
 		return entity.User{}, errUpdate
 	}

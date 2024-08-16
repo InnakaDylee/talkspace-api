@@ -19,7 +19,7 @@ func UserLoginRequestToUserEntity(request UserLoginRequest) entity.User {
 	}
 }
 
-func UserUpdateRequestToUserEntity(request UserUpdateRequest) entity.User {
+func UserUpdateProfileRequestToUserEntity(request UserUpdateProfileRequest) entity.User {
 	return entity.User{
 		Fullname:       request.Fullname,
 		Email:          request.Email,
@@ -78,8 +78,8 @@ func UserEntityToUserLoginResponse(response entity.User, token string) UserLogin
 	}
 }
 
-func UserEntityToUserUpdateResponse(response entity.User) UserUpdateResponse {
-	return UserUpdateResponse{
+func UserEntityToUserUpdateProfileResponse(response entity.User) UserUpdateProfileResponse {
+	return UserUpdateProfileResponse{
 		ID:             response.ID,
 		Fullname:       response.Fullname,
 		Email:          response.Email,
@@ -91,6 +91,21 @@ func UserEntityToUserUpdateResponse(response entity.User) UserUpdateResponse {
 		Height:         response.Height,
 	}
 }
+
+func UserEntityToUserProfileResponse(response entity.User) UserProfileResponse {
+	return UserProfileResponse{
+		ID:             response.ID,
+		Fullname:       response.Fullname,
+		Email:          response.Email,
+		ProfilePicture: response.ProfilePicture,
+		Gender:         response.Gender,
+		Birthdate:      response.Birthdate,
+		BloodType:      response.BloodType,
+		Weight:         response.Weight,
+		Height:         response.Height,
+	}
+}
+
 
 func UserEntityToUserResponse(response entity.User) UserResponse {
 	return UserResponse{
