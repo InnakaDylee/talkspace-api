@@ -33,5 +33,5 @@ func UserRoutes(e *echo.Group, db *gorm.DB, es *elasticsearch.Client, rdb *redis
 
 	profile := e.Group("/profile", middlewares.JWTMiddleware(false))
 	profile.GET("/:user_id", userHandler.GetUserByID)
-	profile.PUT("/:user_id", userHandler.UpdateUserByID)
+	profile.PUT("/:user_id", userHandler.UpdateUserProfile)
 }

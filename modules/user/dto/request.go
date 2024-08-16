@@ -13,7 +13,7 @@ type (
 		Password string `json:"password" form:"password"`
 	}
 
-	UserUpdateRequest struct {
+	UserUpdateProfileRequest struct {
 		Fullname       string `json:"fullname" form:"fullname"`
 		Email          string `json:"email" form:"email"`
 		ProfilePicture string `json:"profile_picture" form:"profile_picture"`

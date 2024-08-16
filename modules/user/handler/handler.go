@@ -7,6 +7,7 @@ import (
 	"talkspace-api/modules/user/dto"
 	"talkspace-api/modules/user/usecase"
 	"talkspace-api/utils/constant"
+	"talkspace-api/utils/helper/cloud"
 	"talkspace-api/utils/responses"
 
 	"github.com/labstack/echo/v4"
@@ -49,7 +50,7 @@ func (uh *userHandler) GetUserByID(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errGetID.Error()))
 	}
 
-	userResponse := dto.UserEntityToUserUpdateResponse(user)
+	userResponse := dto.UserEntityToUserProfileResponse(user)
 
 	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PROFILE_RETRIEVED, userResponse))
 }
@@ -93,7 +94,7 @@ func (uh *userHandler) LoginUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_LOGIN, userResponse))
 }
 
-func (uh *userHandler) UpdateUserByID(c echo.Context) error {
+func (uh *userHandler) UpdateUserProfile(c echo.Context) error {
 	userIDParam := c.Param("user_id")
 	if userIDParam == "" {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(constant.ERROR_ID_NOTFOUND))
@@ -112,21 +113,34 @@ func (uh *userHandler) UpdateUserByID(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(constant.ERROR_ROLE_ACCESS))
 	}
 
-	userRequest := dto.UserUpdateRequest{}
+	userRequest := dto.UserUpdateProfileRequest{}
 
 	errBind := c.Bind(&userRequest)
 	if errBind != nil {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errBind.Error()))
 	}
 
-	userEntity := dto.UserUpdateRequestToUserEntity(userRequest)
+	image, errFile := c.FormFile("profile_picture")
+	if errFile != nil && errFile != http.ErrMissingFile {
+		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(constant.ERROR_UPLOAD_IMAGE))
+	}
 
-	user, errUpdate := uh.userCommandUsecase.UpdateUserByID(userIDParam, userEntity)
+	if image != nil {
+		imageURL, errUpload := cloud.UploadImageToS3(image)
+		if errUpload != nil {
+			return c.JSON(http.StatusInternalServerError, responses.ErrorResponse(constant.ERROR_UPLOAD_IMAGE_S3))
+		}
+		userRequest.ProfilePicture = imageURL
+	}
+
+	userEntity := dto.UserUpdateProfileRequestToUserEntity(userRequest)
+
+	user, errUpdate := uh.userCommandUsecase.UpdateUserProfile(userIDParam, userEntity, image)
 	if errUpdate != nil {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errUpdate.Error()))
 	}
 
-	userResponse := dto.UserEntityToUserUpdateResponse(user)
+	userResponse := dto.UserEntityToUserUpdateProfileResponse(user)
 
 	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PROFILE_UPDATED, userResponse))
 }
