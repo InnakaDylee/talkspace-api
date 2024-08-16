@@ -36,6 +36,18 @@ func GenerateRandomBytes() (string, error) {
 	return base64.URLEncoding.EncodeToString(bytes), nil
 }
 
+func GenerateRandomPassword(length int) (string, error) {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, length)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	for i, v := range b {
+		b[i] = charset[v%byte(len(charset))]
+	}
+	return string(b), nil
+}
+
 func GenerateEmailTemplate(fileTemplate string, data interface{}) (string, error) {
 	templatePath, err := filepath.Abs(fmt.Sprintf("talkspace-api/utils/helper/email/template/%s", fileTemplate))
 	if err != nil {
