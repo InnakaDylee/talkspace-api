@@ -19,11 +19,9 @@ func (d *Doctor) BeforeCreate(tx *gorm.DB) (err error) {
 		d.Price = 150000
 	}
 
-	if d.Gender != nil {
-		validGenders := map[string]bool{"male": true, "female": true}
-		if !validGenders[*d.Gender] {
-			return errors.New("invalid gender")
-		}
+	validGenders := map[string]bool{"male": true, "female": true}
+	if !validGenders[d.Gender] {
+		return errors.New("invalid gender")
 	}
 
 	validRoles := map[string]bool{"doctor": true}

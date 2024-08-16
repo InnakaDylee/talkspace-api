@@ -3,19 +3,13 @@ package entity
 import "talkspace-api/modules/doctor/model"
 
 func DoctorEntityToDoctorModel(doctorEntity Doctor) model.Doctor {
-	var gender *string
-	if doctorEntity.Gender != "" {
-		genderValue := doctorEntity.Gender
-		gender = &genderValue
-	}
-
 	doctorModel := model.Doctor{
 		ID:                doctorEntity.ID,
 		Fullname:          doctorEntity.Fullname,
 		Email:             doctorEntity.Email,
 		Password:          doctorEntity.Password,
 		ProfilePicture:    doctorEntity.ProfilePicture,
-		Gender:            gender,
+		Gender:            doctorEntity.Gender,
 		Price:             doctorEntity.Price,
 		Specialization:    doctorEntity.Specialization,
 		LicenseNumber:     doctorEntity.LicenseNumber,
@@ -44,18 +38,13 @@ func ListDoctorEntityToDoctorModel(doctorEntities []Doctor) []model.Doctor {
 }
 
 func DoctorModelToDoctorEntity(doctorModel model.Doctor) Doctor {
-	var gender string
-	if doctorModel.Gender != nil {
-		gender = *doctorModel.Gender
-	}
-
 	doctorEntity := Doctor{
 		ID:                doctorModel.ID,
 		Fullname:          doctorModel.Fullname,
 		Email:             doctorModel.Email,
 		Password:          doctorModel.Password,
 		ProfilePicture:    doctorModel.ProfilePicture,
-		Gender:            gender,
+		Gender:            doctorModel.Gender,
 		Price:             doctorModel.Price,
 		Specialization:    doctorModel.Specialization,
 		LicenseNumber:     doctorModel.LicenseNumber,

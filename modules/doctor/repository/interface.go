@@ -6,6 +6,7 @@ import (
 )
 
 type DoctorCommandRepositoryInterface interface {
+	RegisterDoctor(doctor entity.Doctor, image *multipart.FileHeader) (entity.Doctor, error)
 	LoginDoctor(email, password string) (entity.Doctor, error)
 	UpdateDoctorProfile(id string, doctor entity.Doctor, image *multipart.FileHeader) (entity.Doctor, error)
 	UpdateDoctorStatus(id string, status bool) (entity.Doctor, error)

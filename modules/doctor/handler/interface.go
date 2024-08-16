@@ -8,6 +8,7 @@ type DoctorHandlerInterface interface {
 	GetAllDoctors(c echo.Context) error
 
 	// Command
+	RegisterDoctor(c echo.Context) error
 	LoginDoctor(c echo.Context) error
 	UpdateDoctorProfile(c echo.Context) error
 	UpdateDoctorStatus(c echo.Context) error

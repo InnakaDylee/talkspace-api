@@ -88,6 +88,48 @@ func (dh *doctorHandler) GetAllDoctors(c echo.Context) error {
 }
 
 // Command
+func (dh *doctorHandler) RegisterDoctor(c echo.Context) error {
+
+	_, role, errExtractToken := middlewares.ExtractToken(c)
+	if errExtractToken != nil {
+		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(errExtractToken.Error()))
+	}
+
+	if role != constant.ADMIN {
+		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(constant.ERROR_ROLE_ACCESS))
+	}
+
+	doctorRequest := dto.DoctorRegisterRequest{}
+
+	if err := c.Bind(&doctorRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(err.Error()))
+	}
+
+	image, err := c.FormFile("profile_picture")
+	if err != nil && err != http.ErrMissingFile {
+		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(constant.ERROR_UPLOAD_IMAGE))
+	}
+
+	if image != nil {
+		imageURL, errUpload := cloud.UploadImageToS3(image)
+		if errUpload != nil {
+			return c.JSON(http.StatusInternalServerError, responses.ErrorResponse(constant.ERROR_UPLOAD_IMAGE_S3))
+		}
+		doctorRequest.ProfilePicture = imageURL
+	}
+	
+	doctorEntity := dto.DoctorRegisterRequestToDoctorEntity(doctorRequest)
+
+	registeredDoctor, errRegister := dh.doctorCommandUsecase.RegisterDoctor(doctorEntity, image)
+	if errRegister != nil {
+		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errRegister.Error()))
+	}
+
+	doctorResponse := dto.DoctorEntityToDoctorRegisterResponse(registeredDoctor)
+
+	return c.JSON(http.StatusCreated, responses.SuccessResponse(constant.SUCCESS_REGISTER, doctorResponse))
+}
+
 func (dh *doctorHandler) LoginDoctor(c echo.Context) error {
 	doctorRequest := dto.DoctorLoginRequest{}
 

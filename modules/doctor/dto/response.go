@@ -1,6 +1,21 @@
 package dto
 
 type (
+	DoctorRegisterResponse struct {
+		ID                string `json:"id"`
+		Fullname          string `json:"fullname"`
+		Email             string `json:"email"`
+		ProfilePicture    string `json:"profile_picture"`
+		Status            bool   `json:"status"`
+		Gender            string `json:"gender"`
+		Specialization    string `json:"specialization"`
+		YearsOfExperience string `json:"years_of_experience"`
+		LicenseNumber     string `json:"license_number"`
+		Alumnus           string `json:"alumnus"`
+		About             string `json:"about"`
+		Location          string `json:"location"`
+	}
+
 	DoctorLoginResponse struct {
 		ID       string `json:"id"`
 		Fullname string `json:"fullname"`
