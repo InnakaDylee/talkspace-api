@@ -3,8 +3,8 @@ package usecase
 import (
 	"errors"
 	"talkspace-api/middlewares"
-	"talkspace-api/modules/admin/entity" 
-	"talkspace-api/modules/admin/repository" 
+	"talkspace-api/modules/admin/entity"
+	"talkspace-api/modules/admin/repository"
 	"talkspace-api/utils/bcrypt"
 	"talkspace-api/utils/constant"
 	"talkspace-api/utils/generator"
@@ -14,8 +14,8 @@ import (
 )
 
 type adminCommandUsecase struct {
-	adminCommandRepository repository.AdminCommandRepositoryInterface 
-	adminQueryRepository   repository.AdminQueryRepositoryInterface   
+	adminCommandRepository repository.AdminCommandRepositoryInterface
+	adminQueryRepository   repository.AdminQueryRepositoryInterface
 }
 
 func NewAdminCommandUsecase(acr repository.AdminCommandRepositoryInterface, aqr repository.AdminQueryRepositoryInterface) AdminCommandUsecaseInterface {
@@ -25,7 +25,7 @@ func NewAdminCommandUsecase(acr repository.AdminCommandRepositoryInterface, aqr 
 	}
 }
 
-func (acs *adminCommandUsecase) RegisterAdmin(admin entity.Admin) (entity.Admin, error) { 
+func (acu *adminCommandUsecase) RegisterAdmin(admin entity.Admin) (entity.Admin, error) {
 
 	errEmpty := validator.IsDataEmpty([]string{"fullname", "email", "password", "confirm_password"}, admin.Fullname, admin.Email, admin.Password, admin.ConfirmPassword)
 	if errEmpty != nil {
@@ -42,7 +42,7 @@ func (acs *adminCommandUsecase) RegisterAdmin(admin entity.Admin) (entity.Admin,
 		return entity.Admin{}, errLength
 	}
 
-	_, errGetEmail := acs.adminQueryRepository.GetAdminByEmail(admin.Email)
+	_, errGetEmail := acu.adminQueryRepository.GetAdminByEmail(admin.Email)
 	if errGetEmail == nil {
 		return entity.Admin{}, errors.New(constant.ERROR_EMAIL_EXIST)
 	}
@@ -58,7 +58,7 @@ func (acs *adminCommandUsecase) RegisterAdmin(admin entity.Admin) (entity.Admin,
 
 	admin.Password = hashedPassword
 
-	adminEntity, errRegister := acs.adminCommandRepository.RegisterAdmin(admin)
+	adminEntity, errRegister := acu.adminCommandRepository.RegisterAdmin(admin)
 	if errRegister != nil {
 		return entity.Admin{}, errRegister
 	}
@@ -68,7 +68,7 @@ func (acs *adminCommandUsecase) RegisterAdmin(admin entity.Admin) (entity.Admin,
 	return adminEntity, nil
 }
 
-func (acs *adminCommandUsecase) LoginAdmin(email, password string) (entity.Admin, string, error) { 
+func (acu *adminCommandUsecase) LoginAdmin(email, password string) (entity.Admin, string, error) {
 
 	errEmpty := validator.IsDataEmpty([]string{"email", "password"}, email, password)
 	if errEmpty != nil {
@@ -80,7 +80,7 @@ func (acs *adminCommandUsecase) LoginAdmin(email, password string) (entity.Admin
 		return entity.Admin{}, "", errEmailValid
 	}
 
-	adminEntity, errGetEmail := acs.adminQueryRepository.GetAdminByEmail(email)
+	adminEntity, errGetEmail := acu.adminQueryRepository.GetAdminByEmail(email)
 	if errGetEmail != nil {
 		return entity.Admin{}, "", errors.New(constant.ERROR_EMAIL_UNREGISTERED)
 	}
@@ -100,12 +100,12 @@ func (acs *adminCommandUsecase) LoginAdmin(email, password string) (entity.Admin
 	return adminEntity, token, nil
 }
 
-func (acs *adminCommandUsecase) UpdateAdminPassword(id string, password entity.Admin) (entity.Admin, error) { 
+func (acu *adminCommandUsecase) UpdateAdminPassword(id string, password entity.Admin) (entity.Admin, error) {
 	if id == "" {
 		return entity.Admin{}, errors.New(constant.ERROR_ID_INVALID)
 	}
 
-	result, errGetID := acs.adminQueryRepository.GetAdminByID(id)
+	result, errGetID := acu.adminQueryRepository.GetAdminByID(id)
 	if errGetID != nil {
 		return entity.Admin{}, errGetID
 	}
@@ -135,7 +135,7 @@ func (acs *adminCommandUsecase) UpdateAdminPassword(id string, password entity.A
 	}
 	password.Password = HashPassword
 
-	adminEntity, errUpdate := acs.adminCommandRepository.UpdateAdminPassword(id, password)
+	adminEntity, errUpdate := acu.adminCommandRepository.UpdateAdminPassword(id, password)
 	if errUpdate != nil {
 		return entity.Admin{}, errUpdate
 	}
@@ -143,7 +143,7 @@ func (acs *adminCommandUsecase) UpdateAdminPassword(id string, password entity.A
 	return adminEntity, nil
 }
 
-func (acs *adminCommandUsecase) SendAdminOTP(email string) (entity.Admin, error) { 
+func (acu *adminCommandUsecase) SendAdminOTP(email string) (entity.Admin, error) {
 
 	errEmpty := validator.IsDataEmpty([]string{"email"}, email)
 	if errEmpty != nil {
@@ -162,7 +162,7 @@ func (acs *adminCommandUsecase) SendAdminOTP(email string) (entity.Admin, error)
 
 	expired := time.Now().Add(5 * time.Minute).Unix()
 
-	adminEntity, errSend := acs.adminCommandRepository.SendAdminOTP(email, code, expired)
+	adminEntity, errSend := acu.adminCommandRepository.SendAdminOTP(email, code, expired)
 	if errSend != nil {
 		return entity.Admin{}, errSend
 	}
@@ -171,13 +171,13 @@ func (acs *adminCommandUsecase) SendAdminOTP(email string) (entity.Admin, error)
 	return adminEntity, nil
 }
 
-func (acs *adminCommandUsecase) VerifyAdminOTP(email, otp string) (string, error) {
+func (acu *adminCommandUsecase) VerifyAdminOTP(email, otp string) (string, error) {
 	errEmpty := validator.IsDataEmpty([]string{"email", "otp"}, email, otp)
 	if errEmpty != nil {
 		return "", errEmpty
 	}
 
-	adminEntity, err := acs.adminCommandRepository.VerifyAdminOTP(email, otp)
+	adminEntity, err := acu.adminCommandRepository.VerifyAdminOTP(email, otp)
 	if err != nil {
 		return "", errors.New(constant.ERROR_EMAIL_OTP)
 	}
@@ -195,7 +195,7 @@ func (acs *adminCommandUsecase) VerifyAdminOTP(email, otp string) (string, error
 		return "", errors.New(constant.ERROR_TOKEN_GENERATE)
 	}
 
-	_, errReset := acs.adminCommandRepository.ResetAdminOTP(otp) 
+	_, errReset := acu.adminCommandRepository.ResetAdminOTP(otp)
 	if errReset != nil {
 		return "", errors.New(constant.ERROR_OTP_RESET)
 	}
@@ -203,7 +203,7 @@ func (acs *adminCommandUsecase) VerifyAdminOTP(email, otp string) (string, error
 	return token, nil
 }
 
-func (acs *adminCommandUsecase) NewAdminPassword(email string, password entity.Admin) (entity.Admin, error) { 
+func (acu *adminCommandUsecase) NewAdminPassword(email string, password entity.Admin) (entity.Admin, error) {
 	errEmpty := validator.IsDataEmpty([]string{"email", "password", "confirm_passsword"}, email, password.Password, password.ConfirmPassword)
 	if errEmpty != nil {
 		return entity.Admin{}, errEmpty
@@ -229,7 +229,7 @@ func (acs *adminCommandUsecase) NewAdminPassword(email string, password entity.A
 	}
 	password.Password = HashPassword
 
-	adminEntity, errNewPass := acs.adminCommandRepository.NewAdminPassword(email, password)
+	adminEntity, errNewPass := acu.adminCommandRepository.NewAdminPassword(email, password)
 	if errNewPass != nil {
 		return entity.Admin{}, errNewPass
 	}
