@@ -134,3 +134,13 @@ func JSONReader(v interface{}) io.Reader {
 	json.NewEncoder(b).Encode(v)
 	return b
 }
+
+func RemoveNilValues(slice []interface{}) []interface{} {
+	result := []interface{}{}
+	for _, v := range slice {
+		if v != nil {
+			result = append(result, v)
+		}
+	}
+	return result
+}

@@ -1,4 +1,4 @@
-package storage
+package cloud
 
 import (
 	"errors"
@@ -15,8 +15,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
-func UploadImageToS3(image *multipart.FileHeader) (string, error) {
 
+func UploadImageToS3(image *multipart.FileHeader) (string, error) {
 	config, err := configs.LoadConfig()
 	if err != nil {
 		logrus.Error("failed to load configuration:", err)
@@ -28,17 +28,16 @@ func UploadImageToS3(image *multipart.FileHeader) (string, error) {
 	awsRegion := config.CLOUDSTORAGE.AWS_REGION
 	bucketName := config.CLOUDSTORAGE.AWS_BUCKET_NAME
 
-	
-	maxUploadSize := int64(10 * 1024 * 1024) 
+	maxUploadSize := int64(10 * 1024 * 1024)
 	if image.Size > maxUploadSize {
-		return "", errors.New("error: file size exceeds the maximum allowed size of 10MB")
+		return "", errors.New("file size exceeds the maximum allowed size of 10MB")
 	}
 
 	extension := filepath.Ext(image.Filename)
 	allowedExtensions := map[string]bool{".jpg": true, ".png": true, ".jpeg": true}
 
 	if !allowedExtensions[strings.ToLower(extension)] {
-		return "", errors.New("error: file format not allowed (.jpg / .png / .jpeg)")
+		return "", errors.New("invalid image file format. supported formats: .jpg, .jpeg, .png")
 	}
 
 	imagePath := uuid.New().String() + extension
