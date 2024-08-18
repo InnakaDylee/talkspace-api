@@ -22,6 +22,7 @@ func DoctorRoutes(e *echo.Group, db *gorm.DB, es *elasticsearch.Client, rdb *red
 	doctorHandler := handler.NewDoctorHandler(doctorCommandUsecase, doctorQueryUsecase)
 
 	account := e.Group("/account")
+	account.POST("/register", doctorHandler.RegisterDoctor, middlewares.JWTMiddleware(false))
 	account.POST("/login", doctorHandler.LoginDoctor)
 
 	password := e.Group("/password")
