@@ -48,9 +48,8 @@
 							"script": {
 								"exec": [
 									"var jsonData = pm.response.json();",
-									"var token = jsonData.token;",
-									"pm.environment.set('user', token);",
-									""
+									"var token = jsonData.results.token;",
+									"pm.environment.set(\"user\", token);"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -65,7 +64,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"johndoe@example.com\",\n    \"password\": \"securepassword123\"\n}\n",
+							"raw": "{\n    \"email\": \"janedoe@example.com\",\n    \"password\": \"securepassword123\"\n}\n\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -137,13 +136,54 @@
 						"method": "PUT",
 						"header": [],
 						"body": {
-							"mode": "raw",
-							"raw": "\n{\n    \"fullname\": \"John Doe\",\n    \"email\": \"johndoe@example.com\",\n    \"profile_picture\": \"https://example.com/profile.jpg\",\n    \"gender\": \"male\",\n    \"birthdate\": \"1990-01-01\",\n    \"blood_type\": \"O\",\n    \"height\": 180,\n    \"weight\": 75\n}\n",
-							"options": {
-								"raw": {
-									"language": "json"
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "fullname",
+									"value": "Jane Doe",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "janedoe@example.com",
+									"description": "text@example.com",
+									"type": "text"
+								},
+								{
+									"key": "profile_picture",
+									"description": "jpeg jpg png ",
+									"type": "file",
+									"src": "/Users/user/Downloads/_ (3).jpeg"
+								},
+								{
+									"key": "gender",
+									"value": "Female",
+									"description": "Male Female",
+									"type": "text"
+								},
+								{
+									"key": "birthdate",
+									"value": "2000-12-31",
+									"description": "YYYY-MM-DD",
+									"type": "text"
+								},
+								{
+									"key": "blood_type",
+									"value": "A",
+									"description": "A B AB O",
+									"type": "text"
+								},
+								{
+									"key": "weight",
+									"value": "50",
+									"type": "text"
+								},
+								{
+									"key": "height",
+									"value": "170",
+									"type": "text"
 								}
-							}
+							]
 						},
 						"url": {
 							"raw": "{{local}}/users/profile/:user_id",
@@ -158,6 +198,387 @@
 							"variable": [
 								{
 									"key": "user_id",
+									"value": "c8704b18-1f3d-4f3d-bcd5-9c29f8f8e287"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"janedoe@example.com\"\n}\n\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/users/password/forgot-password",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"users",
+								"password",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"janedoe@example.com\",\n    \"otp\": \"1234\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/users/password/verify-otp",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"users",
+								"password",
+								"verify-otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{user}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"password\": \"securepassword123\",\n    \"confirm_password\": \"securepassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/users/password/new-password",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"users",
+								"password",
+								"new-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{user}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"password\": \"securepassword123\",\n    \"new_password\": \"newsecurepassword123\",\n    \"confirm_password\": \"newsecurepassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/users/password/change-password",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"users",
+								"password",
+								"change-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Doctor",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"var token = jsonData.results.token;",
+									"pm.environment.set(\"doctor\", token);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"janedoe@example.com\",\n    \"password\": \"securepassword123\"\n}\n\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/doctors/account/login",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"doctors",
+								"account",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{doctor}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}/doctors/profile/:doctor_id",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"doctors",
+								"profile",
+								":doctor_id"
+							],
+							"variable": [
+								{
+									"key": "doctor_id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Doctors",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}/doctors?status=true&specialization=Psikiater",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"doctors"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "true"
+								},
+								{
+									"key": "specialization",
+									"value": "Psikiater"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{doctor}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "fullname",
+									"value": "Dr. Jane Doe, Sp.KJ",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "janedoe@example.com",
+									"description": "text@example.com",
+									"type": "text"
+								},
+								{
+									"key": "profile_picture",
+									"description": "jpeg jpg png ",
+									"type": "file",
+									"src": "/Users/user/Downloads/_ (3).jpeg"
+								},
+								{
+									"key": "specialization",
+									"value": "Psikiater",
+									"type": "text"
+								},
+								{
+									"key": "license_number",
+									"value": "3111100316053062",
+									"type": "text"
+								},
+								{
+									"key": "alumnus",
+									"value": "Universitas Indonesia, 2001",
+									"type": "text"
+								},
+								{
+									"key": "years_of_experience",
+									"value": "15 Tahun",
+									"type": "text"
+								},
+								{
+									"key": "about",
+									"value": "Dr. Jane Doe adalah seorang psikiater yang berdedikasi dengan pengalaman lebih dari 10 tahun dalam bidang kesehatan mental. Beliau lulus dari Fakultas Kedokteran Universitas Indonesia dan telah menjalani berbagai pelatihan spesialisasi dalam psikiatri untuk meningkatkan kompetensinya dalam menangani pasien dengan berbagai gangguan mental dan emosional. Dr. Jane Doe dikenal karena pendekatannya yang penuh empati serta kemampuannya dalam memberikan diagnosis yang tepat dan solusi terapi yang efektif untuk kondisi seperti depresi, kecemasan, gangguan bipolar, dan stres pasca-trauma.\n\n",
+									"type": "text"
+								},
+								{
+									"key": "location",
+									"value": "Kota Pekanbaru, Riau",
+									"type": "text"
+								},
+								{
+									"key": "gender",
+									"value": "Female",
+									"description": "Male Female",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{local}}/doctors/profile/:doctor_id",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"doctors",
+								"profile",
+								":doctor_id"
+							],
+							"variable": [
+								{
+									"key": "doctor_id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Status By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{doctor}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": true // active : true, inactive : false\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/doctors/status/:doctor_id",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"doctors",
+								"status",
+								":doctor_id"
+							],
+							"variable": [
+								{
+									"key": "doctor_id",
 									"value": ""
 								}
 							]
@@ -168,20 +589,471 @@
 				{
 					"name": "Forgot Password",
 					"request": {
-						"method": "GET",
-						"header": []
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"janedoe@example.com\"\n}\n\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/doctors/password/forgot-password",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"doctors",
+								"password",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"janedoe@example.com\",\n    \"otp\": \"1234\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/doctors/password/verify-otp",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"doctors",
+								"password",
+								"verify-otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{doctor}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"password\": \"securepassword123\",\n    \"confirm_password\": \"securepassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/doctors/password/new-password",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"doctors",
+								"password",
+								"new-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{doctor}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"password\": \"securepassword123\",\n    \"new_password\": \"newsecurepassword123\",\n    \"confirm_password\": \"newsecurepassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/doctors/password/change-password",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"doctors",
+								"password",
+								"change-password"
+							]
+						}
 					},
 					"response": []
 				}
 			]
 		},
 		{
-			"name": "Doctor",
-			"item": []
-		},
-		{
 			"name": "Admin",
-			"item": []
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fullname\": \"Jane Doe\",\n    \"email\": \"janedoe@example.com\",\n    \"password\": \"securepassword123\",\n    \"confirm_password\": \"securepassword123\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/admins/account/register",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"admins",
+								"account",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"var token = jsonData.results.token;",
+									"pm.environment.set(\"admin\", token);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"janedoe@example.com\",\n    \"password\": \"securepassword123\"\n}\n\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/admins/account/login",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"admins",
+								"account",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register Doctor",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "fullname",
+									"value": "Dr. Jane Doe, Sp.KJ",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "janedoe@example.com",
+									"description": "text@example.com",
+									"type": "text"
+								},
+								{
+									"key": "profile_picture",
+									"description": "jpeg jpg png ",
+									"type": "file",
+									"src": "/Users/user/Downloads/_ (3).jpeg"
+								},
+								{
+									"key": "specialization",
+									"value": "Psikiater",
+									"type": "text"
+								},
+								{
+									"key": "license_number",
+									"value": "3111100316053062",
+									"type": "text"
+								},
+								{
+									"key": "alumnus",
+									"value": "Universitas Indonesia, 2001",
+									"type": "text"
+								},
+								{
+									"key": "years_of_experience",
+									"value": "15 Tahun",
+									"type": "text"
+								},
+								{
+									"key": "about",
+									"value": "Dr. Jane Doe adalah seorang psikiater yang berdedikasi dengan pengalaman lebih dari 10 tahun dalam bidang kesehatan mental. Beliau lulus dari Fakultas Kedokteran Universitas Indonesia dan telah menjalani berbagai pelatihan spesialisasi dalam psikiatri untuk meningkatkan kompetensinya dalam menangani pasien dengan berbagai gangguan mental dan emosional. Dr. Jane Doe dikenal karena pendekatannya yang penuh empati serta kemampuannya dalam memberikan diagnosis yang tepat dan solusi terapi yang efektif untuk kondisi seperti depresi, kecemasan, gangguan bipolar, dan stres pasca-trauma.\n\n",
+									"type": "text"
+								},
+								{
+									"key": "location",
+									"value": "Kota Pekanbaru, Riau",
+									"type": "text"
+								},
+								{
+									"key": "gender",
+									"value": "Female",
+									"description": "Male Female",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{local}}/doctors/account/register",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"doctors",
+								"account",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile By ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}/admins/profile/:admin_id",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"admins",
+								"profile",
+								":admin_id"
+							],
+							"variable": [
+								{
+									"key": "admin_id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"janedoe@example.com\"\n}\n\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/admins/password/forgot-password",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"admins",
+								"password",
+								"forgot-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"janedoe@example.com\",\n    \"otp\": \"1234\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/admins/password/verify-otp",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"admins",
+								"password",
+								"verify-otp"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"password\": \"securepassword123\",\n    \"confirm_password\": \"securepassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/admins/password/new-password",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"admins",
+								"password",
+								"new-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"password\": \"securepassword123\",\n    \"new_password\": \"newsecurepassword123\",\n    \"confirm_password\": \"newsecurepassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/admins/password/change-password",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"admins",
+								"password",
+								"change-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		},
 		{
 			"name": "Consultation",
