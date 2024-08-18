@@ -163,15 +163,23 @@ func (uqr *userQueryRepository) GetUserByEmail(email string) (entity.User, error
 	defer res.Body.Close()
 
 	if res.IsError() {
+		// Decode the Elasticsearch error response into a map
 		var e map[string]interface{}
+		fmt.Println("Attempting to decode Elasticsearch error response...") // Debugging
 		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-			fmt.Println("Error decoding Elasticsearch error response: ", err)
+			fmt.Println("Error decoding Elasticsearch error response: ", err) // Display decoding error
 			return entity.User{}, err
 		}
+
+		// Check if the "error" key is present in the map and get the error reason
+		fmt.Println("Checking for 'error' and 'reason' keys in response...") // Debugging
 		if reason, ok := e["error"].(map[string]interface{})["reason"].(string); ok {
-			fmt.Println("Elasticsearch error reason: ", reason)
+			fmt.Println("Elasticsearch error reason: ", reason) // Display error reason
 			return entity.User{}, errors.New(reason)
 		}
+
+		// If the 'reason' key is not found, return a generic error message
+		fmt.Println("No 'reason' key found in error response.") // Debugging
 		return entity.User{}, errors.New("unknown error from Elasticsearch")
 	}
 
