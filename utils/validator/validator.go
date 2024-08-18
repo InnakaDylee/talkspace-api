@@ -144,3 +144,24 @@ func RemoveNilValues(slice []interface{}) []interface{} {
 	}
 	return result
 }
+
+func GetStringFromMap(m map[string]interface{}, key string) string {
+    if v, ok := m[key].(string); ok {
+        return v
+    }
+    return ""
+}
+
+func GetIntFromMap(m map[string]interface{}, key string) int {
+    if v, ok := m[key].(float64); ok {
+        return int(v)
+    }
+    return 0
+}
+
+func GetInt64FromMap(m map[string]interface{}, key string) int64 {
+    if v, ok := m[key].(float64); ok {
+        return int64(v)
+    }
+    return 0
+}
