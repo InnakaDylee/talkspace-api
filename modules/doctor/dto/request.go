@@ -27,7 +27,7 @@ type (
 		Gender            string `json:"gender" form:"gender"`
 		Specialization    string `json:"specialization" form:"specialization"`
 		LicenseNumber     string `json:"license_number" form:"license_number"`
-		YearsOfExperience string    `json:"years_of_experience" form:"years_of_experience"`
+		YearsOfExperience string `json:"years_of_experience" form:"years_of_experience"`
 		Alumnus           string `json:"alumnus" form:"alumnus"`
 		About             string `json:"about" form:"about"`
 		Location          string `json:"location" form:"location"`
