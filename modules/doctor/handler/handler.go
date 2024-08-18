@@ -56,15 +56,6 @@ func (dh *doctorHandler) GetDoctorByID(c echo.Context) error {
 }
 
 func (dh *doctorHandler) GetAllDoctors(c echo.Context) error {
-	_, role, errExtract := middlewares.ExtractToken(c)
-	if errExtract != nil {
-		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(errExtract.Error()))
-	}
-
-	if role != constant.ADMIN && role != constant.USER && role != constant.DOCTOR {
-		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(constant.ERROR_ROLE_ACCESS))
-	}
-
 	statusParam := c.QueryParam("status")         
 	specializationParam := c.QueryParam("specialization") 
 
