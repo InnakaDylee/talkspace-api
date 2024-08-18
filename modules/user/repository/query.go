@@ -160,9 +160,11 @@ func (uqr *userQueryRepository) GetUserByEmail(email string) (entity.User, error
         var e map[string]interface{}
         if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
             return entity.User{}, err
-        } else {
-            return entity.User{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
         }
+        if reason, ok := e["error"].(map[string]interface{})["reason"].(string); ok {
+            return entity.User{}, errors.New(reason)
+        }
+        return entity.User{}, errors.New("unknown error from Elasticsearch")
     }
 
     var r map[string]interface{}
@@ -170,55 +172,59 @@ func (uqr *userQueryRepository) GetUserByEmail(email string) (entity.User, error
         return entity.User{}, err
     }
 
-    if hits := r["hits"].(map[string]interface{})["hits"].([]interface{}); len(hits) > 0 {
-        source := hits[0].(map[string]interface{})["_source"].(map[string]interface{})
-        user = entity.User{
-            ID:              source["id"].(string),
-            Fullname:        source["fullname"].(string),
-            Email:           source["email"].(string),
-            Password:        source["password"].(string),
-            NewPassword:     source["newPassword"].(string),
-            ConfirmPassword: source["confirmPassword"].(string),
-            ProfilePicture:  source["profilePicture"].(string),
-            Birthdate:       source["birthdate"].(string),
-            Gender:          source["gender"].(string),
-            BloodType:       source["bloodType"].(string),
-            Height:          int(source["height"].(float64)),
-            Weight:          int(source["weight"].(float64)),
-            Role:            source["role"].(string),
-            OTP:             source["otp"].(string),
-            OTPExpiration:   int64(source["otpExpiration"].(float64)),
-            CreatedAt:       time.Unix(int64(source["createdAt"].(float64)), 0),
-            UpdatedAt:       time.Unix(int64(source["updatedAt"].(float64)), 0),
-            DeletedAt:       validator.ConvertToTime(source["deletedAt"]),
+    hits, ok := r["hits"].(map[string]interface{})["hits"].([]interface{})
+    if !ok || len(hits) == 0 {
+        userModel := model.User{}
+        result := uqr.db.Where("email = ?", email).First(&userModel)
+
+        if result.RowsAffected == 0 {
+            return entity.User{}, errors.New(constant.ERROR_EMAIL_NOTFOUND)
         }
 
-        userData, err := json.Marshal(user)
+        if result.Error != nil {
+            return entity.User{}, result.Error
+        }
+
+        userEntity := entity.UserModelToUserEntity(userModel)
+
+        userData, err := json.Marshal(userEntity)
         if err == nil {
             uqr.rdb.Set(context.Background(), cacheKey, string(userData), 10*time.Minute)
         }
 
-        return user, nil
+        return userEntity, nil
     }
 
-    userModel := model.User{}
-    result := uqr.db.Where("email = ?", email).First(&userModel)
-
-    if result.RowsAffected == 0 {
-        return entity.User{}, errors.New(constant.ERROR_EMAIL_NOTFOUND)
+    source, ok := hits[0].(map[string]interface{})["_source"].(map[string]interface{})
+    if !ok {
+        return entity.User{}, errors.New("unexpected data format")
     }
 
-    if result.Error != nil {
-        return entity.User{}, result.Error
+    user = entity.User{
+        ID:              source["id"].(string),
+        Fullname:        source["fullname"].(string),
+        Email:           source["email"].(string),
+        Password:        source["password"].(string),
+        NewPassword:     source["newPassword"].(string),
+        ConfirmPassword: source["confirmPassword"].(string),
+        ProfilePicture:  source["profilePicture"].(string),
+        Birthdate:       source["birthdate"].(string),
+        Gender:          source["gender"].(string),
+        BloodType:       source["bloodType"].(string),
+        Height:          int(source["height"].(float64)),
+        Weight:          int(source["weight"].(float64)),
+        Role:            source["role"].(string),
+        OTP:             source["otp"].(string),
+        OTPExpiration:   int64(source["otpExpiration"].(float64)),
+        CreatedAt:       time.Unix(int64(source["createdAt"].(float64)), 0),
+        UpdatedAt:       time.Unix(int64(source["updatedAt"].(float64)), 0),
+        DeletedAt:       validator.ConvertToTime(source["deletedAt"]),
     }
 
-    userEntity := entity.UserModelToUserEntity(userModel)
-
-    userData, err := json.Marshal(userEntity)
+    userData, err := json.Marshal(user)
     if err == nil {
         uqr.rdb.Set(context.Background(), cacheKey, string(userData), 10*time.Minute)
     }
 
-    return userEntity, nil
+    return user, nil
 }
-
