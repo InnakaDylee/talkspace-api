@@ -127,6 +127,7 @@ func (uqr *userQueryRepository) GetUserByID(id string) (entity.User, error) {
 
 func (uqr *userQueryRepository) GetUserByEmail(email string) (entity.User, error) {
     cacheKey := "user:email:" + email
+
     cachedUser, err := uqr.rdb.Get(context.Background(), cacheKey).Result()
     if err == nil && cachedUser != "" {
         var user entity.User
@@ -173,7 +174,11 @@ func (uqr *userQueryRepository) GetUserByEmail(email string) (entity.User, error
     }
 
     hits, ok := r["hits"].(map[string]interface{})["hits"].([]interface{})
-    if !ok || len(hits) == 0 {
+    if !ok {
+        return entity.User{}, errors.New("unexpected hits format")
+    }
+
+    if len(hits) == 0 {
         userModel := model.User{}
         result := uqr.db.Where("email = ?", email).First(&userModel)
 
@@ -197,29 +202,27 @@ func (uqr *userQueryRepository) GetUserByEmail(email string) (entity.User, error
 
     source, ok := hits[0].(map[string]interface{})["_source"].(map[string]interface{})
     if !ok {
-        return entity.User{}, errors.New("unexpected data format")
+        return entity.User{}, errors.New("unexpected data format from Elasticsearch")
     }
 
-    user = entity.User{
-        ID:              source["id"].(string),
-        Fullname:        source["fullname"].(string),
-        Email:           source["email"].(string),
-        Password:        source["password"].(string),
-        NewPassword:     source["newPassword"].(string),
-        ConfirmPassword: source["confirmPassword"].(string),
-        ProfilePicture:  source["profilePicture"].(string),
-        Birthdate:       source["birthdate"].(string),
-        Gender:          source["gender"].(string),
-        BloodType:       source["bloodType"].(string),
-        Height:          int(source["height"].(float64)),
-        Weight:          int(source["weight"].(float64)),
-        Role:            source["role"].(string),
-        OTP:             source["otp"].(string),
-        OTPExpiration:   int64(source["otpExpiration"].(float64)),
-        CreatedAt:       time.Unix(int64(source["createdAt"].(float64)), 0),
-        UpdatedAt:       time.Unix(int64(source["updatedAt"].(float64)), 0),
-        DeletedAt:       validator.ConvertToTime(source["deletedAt"]),
-    }
+    user.ID = validator.GetStringFromMap(source, "id")
+    user.Fullname = validator.GetStringFromMap(source, "fullname")
+    user.Email = validator.GetStringFromMap(source, "email")
+    user.Password = validator.GetStringFromMap(source, "password")
+    user.NewPassword = validator.GetStringFromMap(source, "newPassword")
+    user.ConfirmPassword = validator.GetStringFromMap(source, "confirmPassword")
+    user.ProfilePicture = validator.GetStringFromMap(source, "profilePicture")
+    user.Birthdate = validator.GetStringFromMap(source, "birthdate")
+    user.Gender = validator.GetStringFromMap(source, "gender")
+    user.BloodType = validator.GetStringFromMap(source, "bloodType")
+    user.Height = validator.GetIntFromMap(source, "height")
+    user.Weight = validator.GetIntFromMap(source, "weight")
+    user.Role = validator.GetStringFromMap(source, "role")
+    user.OTP = validator.GetStringFromMap(source, "otp")
+    user.OTPExpiration = validator.GetInt64FromMap(source, "otpExpiration")
+    user.CreatedAt = time.Unix(validator.GetInt64FromMap(source, "createdAt"), 0)
+    user.UpdatedAt = time.Unix(validator.GetInt64FromMap(source, "updatedAt"), 0)
+    user.DeletedAt = validator.ConvertToTime(source["deletedAt"])
 
     userData, err := json.Marshal(user)
     if err == nil {
