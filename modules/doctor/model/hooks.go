@@ -33,6 +33,6 @@ func (d *Doctor) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 /*
-CREATE TYPE gender AS ENUM ('male', 'female');
+CREATE TYPE gender AS ENUM ('Male', 'Female');
 CREATE TYPE role AS ENUM ('doctor');
 */
