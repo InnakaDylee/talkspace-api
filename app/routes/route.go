@@ -1,17 +1,16 @@
 package routes
 
 import (
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/redis/go-redis/v9"
 	"github.com/labstack/echo/v4"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
-	ur "talkspace-api/modules/user/router"
 	ar "talkspace-api/modules/admin/router"
 	dr "talkspace-api/modules/doctor/router"
+	ur "talkspace-api/modules/user/router"
 )
 
-func SetupRoutes(e *echo.Echo, db *gorm.DB, es *elasticsearch.Client, rdb *redis.Client) {
+func SetupRoutes(e *echo.Echo, db *gorm.DB, rdb *redis.Client) {
 
 	user := e.Group("/users")
 	admin := e.Group("/admins")
