@@ -32,6 +32,49 @@ func NewUserCommandRepository(db *gorm.DB, es *elasticsearch.Client, rdb *redis.
 	}
 }
 
+// func (ucr *userCommandRepository) RegisterUser(user entity.User) (entity.User, error) {
+// 	userModel := entity.UserEntityToUserModel(user)
+
+// 	result := ucr.db.Create(&userModel)
+// 	if result.Error != nil {
+// 		return entity.User{}, result.Error
+// 	}
+
+// 	userEntity := entity.UserModelToUserEntity(userModel)
+// 	data, err := json.Marshal(userEntity)
+// 	if err != nil {
+// 		return entity.User{}, err
+// 	}
+
+// 	res, err := ucr.es.Index(
+// 		"users",
+// 		bytes.NewReader(data),
+// 		ucr.es.Index.WithContext(context.Background()),
+// 		ucr.es.Index.WithDocumentID(userEntity.ID),
+// 	)
+// 	if err != nil {
+// 		return entity.User{}, err
+// 	}
+// 	defer res.Body.Close()
+
+// 	if res.IsError() {
+// 		var e map[string]interface{}
+// 		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
+// 			return entity.User{}, err
+// 		} else {
+// 			return entity.User{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
+// 		}
+// 	}
+
+// 	cacheKey := "user:" + userEntity.ID
+// 	err = ucr.rdb.Set(context.Background(), cacheKey, data, 24*time.Hour).Err()
+// 	if err != nil {
+// 		return entity.User{}, err
+// 	}
+
+// 	return userEntity, nil
+// }
+
 func (ucr *userCommandRepository) RegisterUser(user entity.User) (entity.User, error) {
 	userModel := entity.UserEntityToUserModel(user)
 
@@ -41,6 +84,7 @@ func (ucr *userCommandRepository) RegisterUser(user entity.User) (entity.User, e
 	}
 
 	userEntity := entity.UserModelToUserEntity(userModel)
+
 	data, err := json.Marshal(userEntity)
 	if err != nil {
 		return entity.User{}, err
@@ -50,7 +94,7 @@ func (ucr *userCommandRepository) RegisterUser(user entity.User) (entity.User, e
 		"users",
 		bytes.NewReader(data),
 		ucr.es.Index.WithContext(context.Background()),
-		ucr.es.Index.WithDocumentID(userEntity.ID),
+		ucr.es.Index.WithDocumentID(userEntity.ID), 
 	)
 	if err != nil {
 		return entity.User{}, err
@@ -62,7 +106,13 @@ func (ucr *userCommandRepository) RegisterUser(user entity.User) (entity.User, e
 		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
 			return entity.User{}, err
 		} else {
-			return entity.User{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
+	
+			if errMap, ok := e["error"].(map[string]interface{}); ok {
+				if reason, ok := errMap["reason"].(string); ok {
+					return entity.User{}, errors.New(reason)
+				}
+			}
+			return entity.User{}, errors.New("unknown error from Elasticsearch")
 		}
 	}
 
