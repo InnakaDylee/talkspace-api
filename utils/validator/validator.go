@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"talkspace-api/modules/user/entity"
 	"talkspace-api/utils/constant"
 	"time"
 )
@@ -146,22 +147,102 @@ func RemoveNilValues(slice []interface{}) []interface{} {
 }
 
 func GetStringFromMap(m map[string]interface{}, key string) string {
-    if v, ok := m[key].(string); ok {
-        return v
-    }
-    return ""
+	if v, ok := m[key].(string); ok {
+		return v
+	}
+	return ""
 }
 
 func GetIntFromMap(m map[string]interface{}, key string) int {
-    if v, ok := m[key].(float64); ok {
-        return int(v)
-    }
-    return 0
+	if v, ok := m[key].(float64); ok {
+		return int(v)
+	}
+	return 0
 }
 
 func GetInt64FromMap(m map[string]interface{}, key string) int64 {
-    if v, ok := m[key].(float64); ok {
-        return int64(v)
-    }
-    return 0
+	if v, ok := m[key].(float64); ok {
+		return int64(v)
+	}
+	return 0
+}
+
+func MapToUserEntity(source map[string]interface{}) (entity.User, error) {
+	var user entity.User
+
+	if id, ok := source["id"].(string); ok {
+		user.ID = id
+	} else {
+		return user, fmt.Errorf("invalid or missing field: id")
+	}
+
+	if fullname, ok := source["fullname"].(string); ok {
+		user.Fullname = fullname
+	}
+
+	if email, ok := source["email"].(string); ok {
+		user.Email = email
+	}
+
+	if password, ok := source["password"].(string); ok {
+		user.Password = password
+	}
+
+	if newPassword, ok := source["newPassword"].(string); ok {
+		user.NewPassword = newPassword
+	}
+
+	if confirmPassword, ok := source["confirmPassword"].(string); ok {
+		user.ConfirmPassword = confirmPassword
+	}
+
+	if profilePicture, ok := source["profilePicture"].(string); ok {
+		user.ProfilePicture = profilePicture
+	}
+
+	if birthdate, ok := source["birthdate"].(string); ok {
+		user.Birthdate = birthdate
+	}
+
+	if gender, ok := source["gender"].(string); ok {
+		user.Gender = gender
+	}
+
+	if bloodType, ok := source["bloodType"].(string); ok {
+		user.BloodType = bloodType
+	}
+
+	if height, ok := source["height"].(float64); ok {
+		user.Height = int(height)
+	}
+
+	if weight, ok := source["weight"].(float64); ok {
+		user.Weight = int(weight)
+	}
+
+	if role, ok := source["role"].(string); ok {
+		user.Role = role
+	}
+
+	if otp, ok := source["otp"].(string); ok {
+		user.OTP = otp
+	}
+
+	if otpExpiration, ok := source["otpExpiration"].(float64); ok {
+		user.OTPExpiration = int64(otpExpiration)
+	}
+
+	if createdAt, ok := source["createdAt"].(float64); ok {
+		user.CreatedAt = time.Unix(int64(createdAt), 0)
+	}
+
+	if updatedAt, ok := source["updatedAt"].(float64); ok {
+		user.UpdatedAt = time.Unix(int64(updatedAt), 0)
+	}
+
+	if deletedAt, ok := source["deletedAt"].(interface{}); ok {
+		user.DeletedAt = ConvertToTime(deletedAt)
+	}
+
+	return user, nil
 }
