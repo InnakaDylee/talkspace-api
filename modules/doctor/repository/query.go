@@ -27,34 +27,34 @@ func NewDoctorQueryRepository(db *gorm.DB, rdb *redis.Client) DoctorQueryReposit
 }
 
 func (dqr *doctorQueryRepository) GetDoctorByID(id string) (entity.Doctor, error) {
-	cacheKey := "doctor:id:" + id
-	cachedDoctor, err := dqr.rdb.Get(context.Background(), cacheKey).Result()
-	if err == nil && cachedDoctor != "" {
-		var doctor entity.Doctor
-		if err := json.Unmarshal([]byte(cachedDoctor), &doctor); err != nil {
-			return entity.Doctor{}, err
-		}
-		return doctor, nil
-	}
+    cacheKey := "doctor:" + id
+    cachedDoctor, err := dqr.rdb.Get(context.Background(), cacheKey).Result()
+    if err == nil && cachedDoctor != "" {
+        var doctor entity.Doctor
+        if err := json.Unmarshal([]byte(cachedDoctor), &doctor); err != nil {
+            return entity.Doctor{}, err
+        }
+        return doctor, nil
+    }
 
-	doctorModel := model.Doctor{}
-	result := dqr.db.Where("id = ?", id).First(&doctorModel)
-	if result.Error != nil {
-		return entity.Doctor{}, result.Error
-	}
+    doctorModel := model.Doctor{}
+    result := dqr.db.Where("id = ?", id).First(&doctorModel)
+    if result.Error != nil {
+        return entity.Doctor{}, result.Error
+    }
 
-	if result.RowsAffected == 0 {
-		return entity.Doctor{}, errors.New(constant.ERROR_ID_NOTFOUND)
-	}
+    if result.RowsAffected == 0 {
+        return entity.Doctor{}, errors.New(constant.ERROR_ID_NOTFOUND)
+    }
 
-	doctorEntity := entity.DoctorModelToDoctorEntity(doctorModel)
+    doctorEntity := entity.DoctorModelToDoctorEntity(doctorModel)
 
-	doctorData, err := json.Marshal(doctorEntity)
-	if err == nil {
-		dqr.rdb.Set(context.Background(), cacheKey, string(doctorData), 10*time.Minute)
-	}
+    doctorData, err := json.Marshal(doctorEntity)
+    if err == nil {
+        dqr.rdb.Set(context.Background(), cacheKey, string(doctorData), 10*time.Minute)
+    }
 
-	return doctorEntity, nil
+    return doctorEntity, nil
 }
 
 func (dqr *doctorQueryRepository) GetDoctorByEmail(email string) (entity.Doctor, error) {

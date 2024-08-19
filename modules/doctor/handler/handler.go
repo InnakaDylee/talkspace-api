@@ -246,14 +246,12 @@ func (dh *doctorHandler) UpdateDoctorPassword(c echo.Context) error {
 
 	doctorEntity := dto.DoctorUpdatePasswordRequestToDoctorEntity(doctorRequest)
 
-	password, errUpdate := dh.doctorCommandUsecase.UpdateDoctorPassword(doctorID, doctorEntity)
+	_, errUpdate := dh.doctorCommandUsecase.UpdateDoctorPassword(doctorID, doctorEntity)
 	if errUpdate != nil {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errUpdate.Error()))
 	}
 
-	doctorResponse := dto.DoctorEntityToDoctorResponse(password)
-
-	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, doctorResponse))
+	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, nil))
 }
 
 func (dh *doctorHandler) ForgotDoctorPassword(c echo.Context) error {
@@ -312,12 +310,10 @@ func (dh *doctorHandler) NewDoctorPassword(c echo.Context) error {
 
 	doctorEntity := dto.DoctorNewPasswordRequestToDoctorEntity(doctorRequest)
 
-	password, errCreate := dh.doctorCommandUsecase.NewDoctorPassword(email, doctorEntity)
+	_, errCreate := dh.doctorCommandUsecase.NewDoctorPassword(email, doctorEntity)
 	if errCreate != nil {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errCreate.Error()))
 	}
 
-	doctorResponse := dto.DoctorEntityToDoctorResponse(password)
-
-	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, doctorResponse))
+	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, nil))
 }
