@@ -38,11 +38,13 @@ func (dcr *doctorCommandRepository) RegisterDoctor(doctor entity.Doctor, image *
 
 	doctorEntity := entity.DoctorModelToDoctorEntity(doctorModel)
 
-	imageURL, errUpload := cloud.UploadImageToS3(image)
-	if errUpload != nil {
-		return entity.Doctor{}, errUpload
-	}
-	doctorModel.ProfilePicture = imageURL
+	if image != nil {
+        imageURL, errUpload := cloud.UploadImageToS3(image)
+        if errUpload != nil {
+            return entity.Doctor{}, errUpload
+        }
+        doctorModel.ProfilePicture = imageURL
+    }
 
 	data, err := json.Marshal(doctorEntity)
 	if err != nil {
@@ -98,11 +100,13 @@ func (dcr *doctorCommandRepository) LoginDoctor(email, password string) (entity.
 func (dcr *doctorCommandRepository) UpdateDoctorProfile(id string, doctor entity.Doctor, image *multipart.FileHeader) (entity.Doctor, error) {
 	doctorModel := entity.DoctorEntityToDoctorModel(doctor)
 
-	imageURL, errUpload := cloud.UploadImageToS3(image)
-	if errUpload != nil {
-		return entity.Doctor{}, errUpload
-	}
-	doctorModel.ProfilePicture = imageURL
+	if image != nil {
+        imageURL, errUpload := cloud.UploadImageToS3(image)
+        if errUpload != nil {
+            return entity.Doctor{}, errUpload
+        }
+        doctorModel.ProfilePicture = imageURL
+    }
 
 	result := dcr.db.Where("id = ?", id).Updates(&doctorModel)
 	if result.Error != nil {
