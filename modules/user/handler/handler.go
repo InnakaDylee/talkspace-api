@@ -165,14 +165,12 @@ func (uh *userHandler) UpdateUserPassword(c echo.Context) error {
 
 	userEntity := dto.UserUpdatePasswordRequestToUserEntity(userRequest)
 
-	password, errUpdate := uh.userCommandUsecase.UpdateUserPassword(userID, userEntity)
+	_, errUpdate := uh.userCommandUsecase.UpdateUserPassword(userID, userEntity)
 	if errUpdate != nil {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errUpdate.Error()))
 	}
 
-	userResponse := dto.UserEntityToUserResponse(password)
-
-	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, userResponse))
+	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, nil))
 }
 
 func (uh *userHandler) ForgotUserPassword(c echo.Context) error {
@@ -231,12 +229,10 @@ func (uh *userHandler) NewUserPassword(c echo.Context) error {
 
 	userEntity := dto.UserNewPasswordRequestToUserEntity(userRequest)
 
-	password, errCreate := uh.userCommandUsecase.NewUserPassword(email, userEntity)
+	_, errCreate := uh.userCommandUsecase.NewUserPassword(email, userEntity)
 	if errCreate != nil {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errCreate.Error()))
 	}
 
-	userResponse := dto.UserEntityToUserResponse(password)
-
-	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, userResponse))
+	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, nil))
 }

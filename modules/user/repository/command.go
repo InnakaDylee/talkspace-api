@@ -92,13 +92,17 @@ func (ucr *userCommandRepository) LoginUser(email, password string) (entity.User
 func (ucr *userCommandRepository) UpdateUserProfile(id string, user entity.User, image *multipart.FileHeader) (entity.User, error) {
 	userModel := entity.UserEntityToUserModel(user)
 
+	if userModel.ID == "" {
+		userModel.ID = id
+	}
+
 	if image != nil {
-        imageURL, errUpload := cloud.UploadImageToS3(image)
-        if errUpload != nil {
-            return entity.User{}, errUpload
-        }
-        userModel.ProfilePicture = imageURL
-    }
+		imageURL, errUpload := cloud.UploadImageToS3(image)
+		if errUpload != nil {
+			return entity.User{}, errUpload
+		}
+		userModel.ProfilePicture = imageURL
+	}
 
 	result := ucr.db.Where("id = ?", id).Updates(&userModel)
 	if result.Error != nil {

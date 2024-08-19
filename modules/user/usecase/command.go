@@ -118,21 +118,27 @@ func (ucs *userCommandUsecase) UpdateUserProfile(id string, user entity.User, im
 		}
 	}
 
-	errBirthdate := validator.IsDateValid(user.Birthdate)
-	if errBirthdate != nil {
-		return entity.User{}, errBirthdate
+	if user.Birthdate != "" {
+		errBirthdate := validator.IsDateValid(user.Birthdate)
+		if errBirthdate != nil {
+			return entity.User{}, errBirthdate
+		}
 	}
 
-	validGender := []interface{}{"male", "female"}
-	errGender := validator.IsDataValid(user.Gender, validGender, true)
-	if errGender != nil {
-		return entity.User{}, errGender
+	if user.Gender != "" {
+		validGender := []interface{}{"male", "female"}
+		errGender := validator.IsDataValid(user.Gender, validGender, true)
+		if errGender != nil {
+			return entity.User{}, errGender
+		}
 	}
 
-	validBloodType := []interface{}{"A", "B", "O", "AB"}
-	errBloodType := validator.IsDataValid(user.BloodType, validBloodType, true)
-	if errBloodType != nil {
-		return entity.User{}, errBloodType
+	if user.BloodType != "" {
+		validBloodType := []interface{}{"A", "B", "O", "AB"}
+		errBloodType := validator.IsDataValid(user.BloodType, validBloodType, true)
+		if errBloodType != nil {
+			return entity.User{}, errBloodType
+		}
 	}
 
 	userEntity, errUpdate := ucs.userCommandRepository.UpdateUserProfile(id, user, image)
