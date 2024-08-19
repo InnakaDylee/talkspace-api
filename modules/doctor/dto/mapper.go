@@ -135,6 +135,15 @@ func DoctorEntityToDoctorProfileResponse(entity entity.Doctor) DoctorProfileResp
 	}
 }
 
+func ListDoctorEntityToDoctorProfileResponse (entity []entity.Doctor) []DoctorProfileResponse {
+	doctorProfileResponses := []DoctorProfileResponse{}
+	for _, doctor := range entity {
+		doctorProfileResponse :=  DoctorEntityToDoctorProfileResponse(doctor)
+		doctorProfileResponses = append(doctorProfileResponses, doctorProfileResponse)
+	}
+	return doctorProfileResponses
+}
+
 func DoctorEntityToDoctorUpdateStatusResponse(entity entity.Doctor) DoctorUpdateStatusResponse {
 	return DoctorUpdateStatusResponse{
 		ID:     entity.ID,

@@ -20,5 +20,5 @@ type DoctorCommandRepositoryInterface interface {
 type DoctorQueryRepositoryInterface interface {
 	GetDoctorByID(id string) (entity.Doctor, error)
 	GetDoctorByEmail(email string) (entity.Doctor, error)
-	GetAllDoctors(status *bool, specialization string) ([]entity.Doctor, error)
+	GetAllDoctors(status *bool, specialization string, page, limit int) ([]entity.Doctor, int, error)
 }
