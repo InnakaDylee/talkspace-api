@@ -37,7 +37,7 @@ func main() {
 	// docs.SwaggerInfo.Schemes = []string{"http", "https"}
 
 	pdb := databases.ConnectPostgreSQL()
-	es := databases.ConnectElasticsearch()
+	// es := databases.ConnectElasticsearch()
 	rdb := databases.ConnectRedis()
 
 	defer rdb.Close()
@@ -50,7 +50,7 @@ func main() {
 	middlewares.Recover(e)
 	middlewares.CORS(e)
 
-	routes.SetupRoutes(e, pdb, es, rdb)
+	routes.SetupRoutes(e, pdb, rdb)
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
