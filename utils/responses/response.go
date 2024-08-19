@@ -1,20 +1,11 @@
 package responses
 
-// Meta
+// Success
 type TResponseMeta struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 }
 
-type TResponseMetaPage struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Page    int    `json:"page"`
-	Limit   int    `json:"limit"`
-	Total   int64  `json:"total"`
-}
-
-// Success
 type TSuccessResponse struct {
 	Meta    TResponseMeta `json:"meta"`
 	Results interface{}   `json:"results"`
@@ -39,7 +30,6 @@ func SuccessResponse(message string, data interface{}) interface{} {
 	}
 }
 
-
 // Error
 type TErrorResponse struct {
 	Meta TResponseMeta `json:"meta"`
@@ -55,19 +45,39 @@ func ErrorResponse(message string) interface{} {
 }
 
 // Pagination
+type TResponseMetaPage struct {
+	Success         bool   `json:"success"`
+	Message         string `json:"message"`
+	CurrentPage     int    `json:"current_page"`
+	TotalPages      int    `json:"total_pages"`
+	TotalItems      int    `json:"total_items"`
+	ItemsPerPage    int    `json:"items_per_page"`
+	HasNextPage     bool   `json:"has_next_page"`
+	HasPreviousPage bool   `json:"has_previous_page"`
+}
+
+
 type TSuccessResponsePage struct {
 	Meta    TResponseMetaPage `json:"meta"`
 	Results interface{}       `json:"results"`
 }
 
-func SuccessResponsePage(message string, page int, limit int, total int64, data interface{}) interface{} {
+func SuccessResponsePage(message string, page int, limit int, totaldata int64, data interface{}) TSuccessResponsePage {
+	totalPages := int(totaldata / int64(limit))
+	if totaldata % int64(limit) != 0 {
+		totalPages++
+	}
+
 	return TSuccessResponsePage{
 		Meta: TResponseMetaPage{
-			Success: true,
-			Message: message,
-			Page:    page,
-			Limit:   limit,
-			Total:   total,
+			Success:         true,
+			Message:         message,
+			CurrentPage:     page,
+			TotalPages:      totalPages,
+			TotalItems:      int(totaldata),
+			ItemsPerPage:    limit,
+			HasNextPage:     page < totalPages,
+			HasPreviousPage: page > 1,
 		},
 		Results: data,
 	}

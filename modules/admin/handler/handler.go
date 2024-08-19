@@ -113,14 +113,12 @@ func (ah *adminHandler) UpdateAdminPassword(c echo.Context) error {
 
 	adminEntity := dto.AdminUpdatePasswordRequestToAdminEntity(adminRequest)
 
-	password, errUpdate := ah.adminCommandUsecase.UpdateAdminPassword(adminID, adminEntity)
+	_, errUpdate := ah.adminCommandUsecase.UpdateAdminPassword(adminID, adminEntity)
 	if errUpdate != nil {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errUpdate.Error()))
 	}
 
-	adminResponse := dto.AdminEntityToAdminResponse(password)
-
-	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, adminResponse))
+	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, nil))
 }
 
 func (ah *adminHandler) ForgotAdminPassword(c echo.Context) error {
@@ -179,12 +177,10 @@ func (ah *adminHandler) NewAdminPassword(c echo.Context) error {
 
 	adminEntity := dto.AdminNewPasswordRequestToAdminEntity(adminRequest)
 
-	password, errCreate := ah.adminCommandUsecase.NewAdminPassword(email, adminEntity)
+	_, errCreate := ah.adminCommandUsecase.NewAdminPassword(email, adminEntity)
 	if errCreate != nil {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errCreate.Error()))
 	}
 
-	adminResponse := dto.AdminEntityToAdminResponse(password)
-
-	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, adminResponse))
+	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, nil))
 }

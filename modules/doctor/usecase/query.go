@@ -32,14 +32,15 @@ func (dqs *doctorQueryUsecase) GetDoctorByID(id string) (entity.Doctor, error) {
 	return doctorEntity, nil
 }
 
-func (dqs *doctorQueryUsecase) GetAllDoctors(status *bool, specialization string) ([]entity.Doctor, error) {
-	doctors, err := dqs.doctorQueryRepository.GetAllDoctors(status, specialization)
+func (dqs *doctorQueryUsecase) GetAllDoctors(status *bool, specialization string, page, limit int) ([]entity.Doctor, int, error) {
+	doctors, totalItems, err := dqs.doctorQueryRepository.GetAllDoctors(status, specialization, page, limit)
 	if err != nil {
 		if err.Error() == constant.ERROR_DATA_EMPTY {
-			return nil, errors.New(constant.ERROR_DATA_EMPTY)
+			return nil, 0, errors.New(constant.ERROR_DATA_EMPTY)
 		}
-		return nil, err
+		return nil, 0, err
 	}
 
-	return doctors, nil
+	return doctors, totalItems, nil
 }
+

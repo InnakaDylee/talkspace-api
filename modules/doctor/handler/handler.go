@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 	"talkspace-api/middlewares"
 	"talkspace-api/modules/doctor/dto"
@@ -56,8 +57,10 @@ func (dh *doctorHandler) GetDoctorByID(c echo.Context) error {
 }
 
 func (dh *doctorHandler) GetAllDoctors(c echo.Context) error {
-	statusParam := c.QueryParam("status")         
-	specializationParam := c.QueryParam("specialization") 
+	statusParam := c.QueryParam("status")
+	specializationParam := c.QueryParam("specialization")
+	pageParam := c.QueryParam("page")
+	limitParam := c.QueryParam("limit")
 
 	var status *bool
 	if statusParam != "" {
@@ -65,17 +68,36 @@ func (dh *doctorHandler) GetAllDoctors(c echo.Context) error {
 		status = &b
 	}
 
-	doctors, err := dh.doctorQueryUsecase.GetAllDoctors(status, specializationParam)
+	page := 1
+	if pageParam != "" {
+		page, _ = strconv.Atoi(pageParam)
+	}
+
+	limit := 10
+	if limitParam != "" {
+		limit, _ = strconv.Atoi(limitParam)
+	}
+
+	doctors, totalItems, err := dh.doctorQueryUsecase.GetAllDoctors(status, specializationParam, page, limit)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, responses.ErrorResponse(err.Error()))
 	}
 
-	doctorResponses := make([]dto.DoctorResponse, len(doctors))
-	for i, doctor := range doctors {
-		doctorResponses[i] = dto.DoctorEntityToDoctorResponse(doctor)
+	if len(doctors) == 0 {
+		return c.JSON(http.StatusOK, responses.SuccessResponse(constant.ERROR_DATA_EMPTY, nil))
 	}
 
-	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_RETRIEVED, doctorResponses))
+	doctorResponses := dto.ListDoctorEntityToDoctorProfileResponse(doctors)
+
+	response := responses.SuccessResponsePage(
+		constant.SUCCESS_RETRIEVED,
+		page,
+		limit,
+		int64(totalItems),
+		doctorResponses,
+	)
+
+	return c.JSON(http.StatusOK, response)
 }
 
 // Command
@@ -108,7 +130,7 @@ func (dh *doctorHandler) RegisterDoctor(c echo.Context) error {
 		}
 		doctorRequest.ProfilePicture = imageURL
 	}
-	
+
 	doctorEntity := dto.DoctorRegisterRequestToDoctorEntity(doctorRequest)
 
 	registeredDoctor, errRegister := dh.doctorCommandUsecase.RegisterDoctor(doctorEntity, image)
@@ -246,14 +268,12 @@ func (dh *doctorHandler) UpdateDoctorPassword(c echo.Context) error {
 
 	doctorEntity := dto.DoctorUpdatePasswordRequestToDoctorEntity(doctorRequest)
 
-	password, errUpdate := dh.doctorCommandUsecase.UpdateDoctorPassword(doctorID, doctorEntity)
+	_, errUpdate := dh.doctorCommandUsecase.UpdateDoctorPassword(doctorID, doctorEntity)
 	if errUpdate != nil {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errUpdate.Error()))
 	}
 
-	doctorResponse := dto.DoctorEntityToDoctorResponse(password)
-
-	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, doctorResponse))
+	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, nil))
 }
 
 func (dh *doctorHandler) ForgotDoctorPassword(c echo.Context) error {
@@ -312,12 +332,10 @@ func (dh *doctorHandler) NewDoctorPassword(c echo.Context) error {
 
 	doctorEntity := dto.DoctorNewPasswordRequestToDoctorEntity(doctorRequest)
 
-	password, errCreate := dh.doctorCommandUsecase.NewDoctorPassword(email, doctorEntity)
+	_, errCreate := dh.doctorCommandUsecase.NewDoctorPassword(email, doctorEntity)
 	if errCreate != nil {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errCreate.Error()))
 	}
 
-	doctorResponse := dto.DoctorEntityToDoctorResponse(password)
-
-	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, doctorResponse))
+	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, nil))
 }

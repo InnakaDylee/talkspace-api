@@ -100,6 +100,10 @@ func (dcr *doctorCommandRepository) LoginDoctor(email, password string) (entity.
 func (dcr *doctorCommandRepository) UpdateDoctorProfile(id string, doctor entity.Doctor, image *multipart.FileHeader) (entity.Doctor, error) {
 	doctorModel := entity.DoctorEntityToDoctorModel(doctor)
 
+	if doctorModel.ID == "" {
+		doctorModel.ID = id
+	}
+
 	if image != nil {
         imageURL, errUpload := cloud.UploadImageToS3(image)
         if errUpload != nil {

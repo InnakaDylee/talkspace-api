@@ -18,5 +18,5 @@ type DoctorCommandUsecaseInterface interface {
 
 type DoctorQueryUsecaseInterface interface {
 	GetDoctorByID(id string) (entity.Doctor, error)
-	GetAllDoctors(status *bool, specialization string) ([]entity.Doctor, error)
+	GetAllDoctors(status *bool, specialization string, page, limit int) ([]entity.Doctor, int, error)
 }
