@@ -64,7 +64,7 @@ func main() {
 	}
 	address := host + ":" + port
 
-	logrus.Info("server is running on address %s...", address)
+	logrus.Info("server is running on address ", address)
 	if err := e.Start(address); err != nil {
 		logrus.Fatalf("error starting server: %v", err)
 	}

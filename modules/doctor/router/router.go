@@ -6,15 +6,14 @@ import (
 	"talkspace-api/modules/doctor/repository"
 	"talkspace-api/modules/doctor/usecase"
 
-	"github.com/elastic/go-elasticsearch/v8"
-	"github.com/redis/go-redis/v9"
 	"github.com/labstack/echo/v4"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
-func DoctorRoutes(e *echo.Group, db *gorm.DB, es *elasticsearch.Client, rdb *redis.Client) {
-	doctorQueryRepository := repository.NewDoctorQueryRepository(db, es, rdb)
-	doctorCommandRepository := repository.NewDoctorCommandRepository(db, es, rdb)
+func DoctorRoutes(e *echo.Group, db *gorm.DB, rdb *redis.Client) {
+	doctorQueryRepository := repository.NewDoctorQueryRepository(db, rdb)
+	doctorCommandRepository := repository.NewDoctorCommandRepository(db, rdb)
 
 	doctorQueryUsecase := usecase.NewDoctorQueryUsecase(doctorCommandRepository, doctorQueryRepository)
 	doctorCommandUsecase := usecase.NewDoctorCommandUsecase(doctorCommandRepository, doctorQueryRepository)

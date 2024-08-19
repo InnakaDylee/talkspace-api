@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -13,67 +12,21 @@ import (
 	"talkspace-api/utils/helper/cloud"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 type userCommandRepository struct {
 	db  *gorm.DB
-	es  *elasticsearch.Client
 	rdb *redis.Client
 }
 
-func NewUserCommandRepository(db *gorm.DB, es *elasticsearch.Client, rdb *redis.Client) UserCommandRepositoryInterface {
+func NewUserCommandRepository(db *gorm.DB, rdb *redis.Client) UserCommandRepositoryInterface {
 	return &userCommandRepository{
 		db:  db,
-		es:  es,
 		rdb: rdb,
 	}
 }
-
-// func (ucr *userCommandRepository) RegisterUser(user entity.User) (entity.User, error) {
-// 	userModel := entity.UserEntityToUserModel(user)
-
-// 	result := ucr.db.Create(&userModel)
-// 	if result.Error != nil {
-// 		return entity.User{}, result.Error
-// 	}
-
-// 	userEntity := entity.UserModelToUserEntity(userModel)
-// 	data, err := json.Marshal(userEntity)
-// 	if err != nil {
-// 		return entity.User{}, err
-// 	}
-
-// 	res, err := ucr.es.Index(
-// 		"users",
-// 		bytes.NewReader(data),
-// 		ucr.es.Index.WithContext(context.Background()),
-// 		ucr.es.Index.WithDocumentID(userEntity.ID),
-// 	)
-// 	if err != nil {
-// 		return entity.User{}, err
-// 	}
-// 	defer res.Body.Close()
-
-// 	if res.IsError() {
-// 		var e map[string]interface{}
-// 		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-// 			return entity.User{}, err
-// 		} else {
-// 			return entity.User{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
-// 		}
-// 	}
-
-// 	cacheKey := "user:" + userEntity.ID
-// 	err = ucr.rdb.Set(context.Background(), cacheKey, data, 24*time.Hour).Err()
-// 	if err != nil {
-// 		return entity.User{}, err
-// 	}
-
-// 	return userEntity, nil
-// }
 
 func (ucr *userCommandRepository) RegisterUser(user entity.User) (entity.User, error) {
 	userModel := entity.UserEntityToUserModel(user)
@@ -85,38 +38,12 @@ func (ucr *userCommandRepository) RegisterUser(user entity.User) (entity.User, e
 
 	userEntity := entity.UserModelToUserEntity(userModel)
 
+	cacheKey := "user:" + userEntity.ID
 	data, err := json.Marshal(userEntity)
 	if err != nil {
 		return entity.User{}, err
 	}
 
-	res, err := ucr.es.Index(
-		"users",
-		bytes.NewReader(data),
-		ucr.es.Index.WithContext(context.Background()),
-		ucr.es.Index.WithDocumentID(userEntity.ID), 
-	)
-	if err != nil {
-		return entity.User{}, err
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		var e map[string]interface{}
-		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-			return entity.User{}, err
-		} else {
-	
-			if errMap, ok := e["error"].(map[string]interface{}); ok {
-				if reason, ok := errMap["reason"].(string); ok {
-					return entity.User{}, errors.New(reason)
-				}
-			}
-			return entity.User{}, errors.New("unknown error from Elasticsearch")
-		}
-	}
-
-	cacheKey := "user:" + userEntity.ID
 	err = ucr.rdb.Set(context.Background(), cacheKey, data, 24*time.Hour).Err()
 	if err != nil {
 		return entity.User{}, err
@@ -184,26 +111,6 @@ func (ucr *userCommandRepository) UpdateUserProfile(id string, user entity.User,
 	data, err := json.Marshal(userEntity)
 	if err != nil {
 		return entity.User{}, err
-	}
-
-	res, err := ucr.es.Index(
-		"users",
-		bytes.NewReader(data),
-		ucr.es.Index.WithContext(context.Background()),
-		ucr.es.Index.WithDocumentID(userEntity.ID),
-	)
-	if err != nil {
-		return entity.User{}, err
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		var e map[string]interface{}
-		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-			return entity.User{}, err
-		} else {
-			return entity.User{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
-		}
 	}
 
 	cacheKey := "user:" + id
@@ -294,7 +201,6 @@ func (ucr *userCommandRepository) ResetUserOTP(otp string) (entity.User, error) 
 }
 
 func (ucr *userCommandRepository) UpdateUserPassword(id string, password entity.User) (entity.User, error) {
-
 	userModel := entity.UserEntityToUserModel(password)
 
 	result := ucr.db.Where("id = ?", id).Updates(&userModel)
@@ -334,24 +240,10 @@ func (ucr *userCommandRepository) NewUserPassword(email string, password entity.
 		return entity.User{}, err
 	}
 
-	res, err := ucr.es.Index(
-		"users",
-		bytes.NewReader(data),
-		ucr.es.Index.WithContext(context.Background()),
-		ucr.es.Index.WithDocumentID(userEntity.ID),
-	)
+	cacheKey := "user:" + userEntity.ID
+	err = ucr.rdb.Set(context.Background(), cacheKey, data, 24*time.Hour).Err()
 	if err != nil {
 		return entity.User{}, err
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		var e map[string]interface{}
-		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-			return entity.User{}, err
-		} else {
-			return entity.User{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
-		}
 	}
 
 	return userEntity, nil

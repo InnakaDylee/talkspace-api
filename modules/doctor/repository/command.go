@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -13,21 +12,18 @@ import (
 	"talkspace-api/utils/helper/cloud"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 type doctorCommandRepository struct {
 	db  *gorm.DB
-	es  *elasticsearch.Client
 	rdb *redis.Client
 }
 
-func NewDoctorCommandRepository(db *gorm.DB, es *elasticsearch.Client, rdb *redis.Client) DoctorCommandRepositoryInterface {
+func NewDoctorCommandRepository(db *gorm.DB, rdb *redis.Client) DoctorCommandRepositoryInterface {
 	return &doctorCommandRepository{
 		db:  db,
-		es:  es,
 		rdb: rdb,
 	}
 }
@@ -51,26 +47,6 @@ func (dcr *doctorCommandRepository) RegisterDoctor(doctor entity.Doctor, image *
 	data, err := json.Marshal(doctorEntity)
 	if err != nil {
 		return entity.Doctor{}, err
-	}
-
-	res, err := dcr.es.Index(
-		"doctors",
-		bytes.NewReader(data),
-		dcr.es.Index.WithContext(context.Background()),
-		dcr.es.Index.WithDocumentID(doctorEntity.ID),
-	)
-	if err != nil {
-		return entity.Doctor{}, err
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		var e map[string]interface{}
-		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-			return entity.Doctor{}, err
-		} else {
-			return entity.Doctor{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
-		}
 	}
 
 	cacheKey := "doctor:" + doctorEntity.ID
@@ -143,26 +119,6 @@ func (dcr *doctorCommandRepository) UpdateDoctorProfile(id string, doctor entity
 		return entity.Doctor{}, err
 	}
 
-	res, err := dcr.es.Index(
-		"doctors",
-		bytes.NewReader(data),
-		dcr.es.Index.WithContext(context.Background()),
-		dcr.es.Index.WithDocumentID(doctorEntity.ID),
-	)
-	if err != nil {
-		return entity.Doctor{}, err
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		var e map[string]interface{}
-		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-			return entity.Doctor{}, err
-		} else {
-			return entity.Doctor{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
-		}
-	}
-
 	cacheKey := "doctor:" + id
 	err = dcr.rdb.Set(context.Background(), cacheKey, data, 24*time.Hour).Err()
 	if err != nil {
@@ -194,26 +150,6 @@ func (dcr *doctorCommandRepository) UpdateDoctorStatus(id string, status bool) (
 	data, err := json.Marshal(doctorEntity)
 	if err != nil {
 		return entity.Doctor{}, err
-	}
-
-	res, err := dcr.es.Index(
-		"doctors",
-		bytes.NewReader(data),
-		dcr.es.Index.WithContext(context.Background()),
-		dcr.es.Index.WithDocumentID(doctorEntity.ID),
-	)
-	if err != nil {
-		return entity.Doctor{}, err
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		var e map[string]interface{}
-		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-			return entity.Doctor{}, err
-		} else {
-			return entity.Doctor{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
-		}
 	}
 
 	cacheKey := "doctor:" + id
@@ -344,24 +280,10 @@ func (dcr *doctorCommandRepository) NewDoctorPassword(email string, password ent
 		return entity.Doctor{}, err
 	}
 
-	res, err := dcr.es.Index(
-		"doctors",
-		bytes.NewReader(data),
-		dcr.es.Index.WithContext(context.Background()),
-		dcr.es.Index.WithDocumentID(doctorEntity.ID),
-	)
+	cacheKey := "doctor:" + doctorEntity.ID
+	err = dcr.rdb.Set(context.Background(), cacheKey, data, 24*time.Hour).Err()
 	if err != nil {
 		return entity.Doctor{}, err
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		var e map[string]interface{}
-		if err := json.NewDecoder(res.Body).Decode(&e); err != nil {
-			return entity.Doctor{}, err
-		} else {
-			return entity.Doctor{}, errors.New(e["error"].(map[string]interface{})["reason"].(string))
-		}
 	}
 
 	return doctorEntity, nil
