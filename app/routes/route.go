@@ -8,19 +8,21 @@ import (
 
 	ur "talkspace-api/modules/user/router"
 	ar "talkspace-api/modules/admin/router"
+	dr "talkspace-api/modules/doctor/router"
 )
 
 func SetupRoutes(e *echo.Echo, db *gorm.DB, es *elasticsearch.Client, rdb *redis.Client) {
 
 	user := e.Group("/users")
 	admin := e.Group("/admins")
-	// doctor := e.Group("/doctors")
+	doctor := e.Group("/doctors")
 	// transaction := e.Group("/transactions")
 	// consultation := e.Group("/consultations")
 	// chatbot := e.Group("/talkbots")
 
-	ur.UserRoutes(user, db, es, rdb)
-	ar.AdminRoutes(admin, db, es, rdb)
+	ur.UserRoutes(user, db, rdb)
+	dr.DoctorRoutes(doctor, db, rdb)
+	ar.AdminRoutes(admin, db, rdb)
 
 	// DoctorRoutes(doctor, db, rdb)
 	// TransactionRoutes(transaction, db, rdb)
