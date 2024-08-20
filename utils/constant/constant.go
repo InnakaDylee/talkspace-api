@@ -2,9 +2,9 @@ package constant
 
 // Roles
 const (
-	USER   = "user"
-	DOCTOR = "doctor"
-	ADMIN  = "admin"
+	USER    = "user"
+	DOCTOR  = "doctor"
+	ADMIN   = "admin"
 )
 
 // Success

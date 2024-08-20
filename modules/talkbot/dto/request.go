@@ -1,5 +1,6 @@
 package dto
 
-type TalkBotRequest struct {
+type TalkbotRequest struct {
 	Message string `json:"message" form:"message"`
 }
+
