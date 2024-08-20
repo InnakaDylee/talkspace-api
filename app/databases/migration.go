@@ -5,10 +5,9 @@ import (
 
 	"gorm.io/gorm"
 
-	um "talkspace-api/modules/user/model"
-	dm "talkspace-api/modules/doctor/model"
 	am "talkspace-api/modules/admin/model"
-	// tm "talkspace-api/modules/transaction/model"
+	dm "talkspace-api/modules/doctor/model"
+	um "talkspace-api/modules/user/model"
 )
 
 func Migration(db *gorm.DB) {
@@ -16,7 +15,6 @@ func Migration(db *gorm.DB) {
 		&um.User{},
 		&dm.Doctor{},
 		&am.Admin{},
-		// &tm.Transaction{},
 	)
 
 	migrator := db.Migrator()
