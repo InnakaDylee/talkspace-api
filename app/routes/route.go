@@ -9,6 +9,7 @@ import (
 	dr "talkspace-api/modules/doctor/router"
 	ur "talkspace-api/modules/user/router"
 	tr "talkspace-api/modules/talkbot/router"
+	cs "talkspace-api/modules/consultation/router"
 )
 
 func SetupRoutes(e *echo.Echo, db *gorm.DB, rdb *redis.Client) {
@@ -17,6 +18,7 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB, rdb *redis.Client) {
 	admin := e.Group("/admins")
 	doctor := e.Group("/doctors")
 	talkbot := e.Group("/talkbots")
+	consultation := e.Group("/consultations")
 	// transaction := e.Group("/transactions")
 	// consultation := e.Group("/consultations")
 
@@ -25,6 +27,7 @@ func SetupRoutes(e *echo.Echo, db *gorm.DB, rdb *redis.Client) {
 	dr.DoctorRoutes(doctor, db, rdb)
 	ar.AdminRoutes(admin, db, rdb)
 	tr.TalkbotRoutes(talkbot)
+	cs.ConsultationRoutes(consultation, db)
 
 	// DoctorRoutes(doctor, db, rdb)
 	// TransactionRoutes(transaction, db, rdb)
