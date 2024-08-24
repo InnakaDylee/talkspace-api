@@ -2,7 +2,8 @@ package dto
 
 type RoomRes struct {
 	ID   string `json:"id"`
-	SessionID     string `json:"session_id"`
+	DoctorProfilePicture     string `json:"doctor_profile_picture"`
+	UserProfilePicture	  string `json:"user_profile_picture"`
 	DoctorName	  string `json:"doctor_name"`
 	UserName        string `json:"user_name"`
 }	

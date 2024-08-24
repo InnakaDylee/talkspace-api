@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"talkspace-api/middlewares"
 	"talkspace-api/modules/consultation/dto"
@@ -50,7 +51,6 @@ func (h *Handler) CreateRoom(c echo.Context) error {
 		for _, r := range rooms {
 			h.hub.Rooms[r.ID] = &usecase.Room{
 				ID:      r.ID,
-				Name:    r.SessionID,
 				UserID: r.UserID,
 				DoctorID: r.DoctorID,
 				Client: make(map[string]*usecase.Client),
@@ -79,7 +79,6 @@ func (h *Handler) CreateRoom(c echo.Context) error {
 
 	h.hub.Rooms[consultation.ID] = &usecase.Room{
 		ID:      consultation.ID,
-		Name:    consultation.SessionID,
 		UserID: consultation.UserID,
 		DoctorID: consultation.DoctorID,
 		Client: make(map[string]*usecase.Client),
@@ -143,7 +142,6 @@ func (h *Handler) GetRooms(c echo.Context) error {
 		for _, r := range rooms {
 			h.hub.Rooms[r.ID] = &usecase.Room{
 				ID:      r.ID,
-				Name:    r.SessionID,
 				UserID: r.UserID,
 				DoctorID: r.DoctorID,
 				Client: make(map[string]*usecase.Client),
@@ -151,15 +149,20 @@ func (h *Handler) GetRooms(c echo.Context) error {
 		}
 	}
 
-	var user user.User
-	var doctor doctor.Doctor
+	fmt.Println(h.hub.Rooms)
+
 	for _, r := range h.hub.Rooms {
 		if r.UserID == ID || r.DoctorID == ID {
-			h.db.Find(&user).Where("id = ?", r.UserID)
-			h.db.Find(&doctor).Where("id = ?", r.DoctorID)
+			var user user.User
+			var doctor doctor.Doctor
+			h.db.Where("id = ?", r.UserID).Find(&user)
+			h.db.Where("id = ?", r.DoctorID).Find(&doctor)
+			fmt.Println(r.UserID, r.DoctorID)
+			fmt.Println(user)
 			roomsRes = append(roomsRes, dto.RoomRes{
 				ID:   r.ID,
-				SessionID: r.Name,
+				DoctorProfilePicture: doctor.ProfilePicture,
+				UserProfilePicture: user.ProfilePicture,
 				DoctorName: doctor.Fullname,
 				UserName: user.Fullname,
 			})
