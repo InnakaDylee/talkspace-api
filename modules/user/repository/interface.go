@@ -14,9 +14,12 @@ type UserCommandRepositoryInterface interface {
 	SendUserOTP(email string, otp string, expired int64) (entity.User, error)
 	VerifyUserOTP(email, otp string) (entity.User, error)
 	ResetUserOTP(otp string) (entity.User, error)
+	RequestPremium(user entity.User, request_premium string) (entity.User, error)
+	UpdateUserPremiumExpired(id string, status string) (entity.User, error)
 }
 
 type UserQueryRepositoryInterface interface {
 	GetUserByID(id string) (entity.User, error)
 	GetUserByEmail(email string) (entity.User, error)
+	GetRequestPremiumUsers() ([]entity.User, error)
 }

@@ -43,6 +43,11 @@ type (
 		Email string `json:"email" form:"email"`
 		OTP   string `json:"otp" form:"otp"`
 	}
+
+	UserVerifyPremium struct {
+		UserID string `json:"user_id" form:"user_id"`
+		Status string `json:"status" form:"status"`
+	}
 )
 
 

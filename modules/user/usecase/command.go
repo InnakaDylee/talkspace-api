@@ -285,3 +285,52 @@ func (ucs *userCommandUsecase) NewUserPassword(email string, password entity.Use
 
 	return userEntity, nil
 }
+
+func (ucs *userCommandUsecase) RequestPremium(user entity.User, request_premium string) (entity.User, error) {
+	if user.ID == "" {
+		return entity.User{}, errors.New(constant.ERROR_ID_INVALID)
+	}
+
+	if request_premium == "" {
+		return entity.User{}, errors.New(constant.ERROR_REQUEST_PREMIUM)
+	}
+
+	validRequest := []interface{}{"monthly", "yearly"}
+	errRequest := validator.IsDataValid(request_premium, validRequest, true)
+	if errRequest != nil {
+		return entity.User{}, errRequest
+	}
+
+	userEntity, errRequest := ucs.userCommandRepository.RequestPremium(user, request_premium)
+	if errRequest != nil {
+		return entity.User{}, errRequest
+	}
+
+	return userEntity, nil
+}
+
+func (ucs *userCommandUsecase) UpdateUserPremiumExpired(id string, status string) (entity.User, error) {
+	if id == "" {
+		return entity.User{}, errors.New(constant.ERROR_ID_INVALID)
+	}
+
+	if status == "" {
+		return entity.User{}, errors.New(constant.ERROR_STATUS_INVALID)
+	}
+
+	validStatus := []interface{}{"accept", "decline"}
+	errStatus := validator.IsDataValid(status, validStatus, true)
+	if errStatus != nil {
+		return entity.User{}, errStatus
+	}
+
+	userEntity, errUpdate := ucs.userCommandRepository.UpdateUserPremiumExpired(id, status)
+	if errUpdate != nil {
+		return entity.User{}, errUpdate
+	}
+
+	mailer.SendEmailPaymentConfirmation(userEntity.Email)
+
+	return userEntity, nil
+}
+	

@@ -92,3 +92,13 @@ func (uqr *userQueryRepository) GetUserByEmail(email string) (entity.User, error
 
 	return user, nil
 }
+
+func (uqr *userQueryRepository) GetRequestPremiumUsers() ([]entity.User, error) {
+	var users []entity.User
+	result := uqr.db.Where("request_premium != ?","").Find(&users)
+	if result.Error != nil {
+		return []entity.User{}, result.Error
+	}
+
+	return users, nil
+}

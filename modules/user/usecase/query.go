@@ -31,3 +31,12 @@ func (uqs *userQueryUsecase) GetUserByID(id string) (entity.User, error) {
 	
 	return userEntity, nil
 }
+
+func (uqs *userQueryUsecase) GetRequestPremiumUsers() ([]entity.User, error) {
+	users, err := uqs.userQueryRepository.GetRequestPremiumUsers()
+	if err != nil {
+		return []entity.User{}, err
+	}
+
+	return users, nil
+}

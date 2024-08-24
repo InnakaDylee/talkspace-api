@@ -109,3 +109,19 @@ func SendEmailNotificationLoginAccount(email string) {
 		}
 	}()
 }
+
+func SendEmailPaymentConfirmation(email string) {
+	go func() {
+		filePath := "utils/helper/email/template/payment-confirmation.html"
+		emailTemplate, err := os.ReadFile(filePath)
+		if err != nil {
+			log.Printf("failed to load email template: %v", err)
+			return
+		}
+
+		success, errEmail := EmailNotificationAccount([]string{email}, string(emailTemplate), nil)
+		if !success || errEmail != nil {
+			log.Printf("failed to send notification email to %s: %v", email, errEmail)
+		}
+	}()
+}

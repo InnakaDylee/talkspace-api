@@ -44,4 +44,11 @@ type (
 		Email      string `json:"email"`
 	}
 
+	UserListResponse struct {
+		ID         string `json:"id"`
+		Fullname   string `json:"fullname"`
+		Email      string `json:"email"`
+		RequestPremium string `json:"request_premium"`
+	}
+
 )
