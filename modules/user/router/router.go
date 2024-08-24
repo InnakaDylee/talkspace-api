@@ -33,4 +33,10 @@ func UserRoutes(e *echo.Group, db *gorm.DB, rdb *redis.Client) {
 	profile := e.Group("/profile", middlewares.JWTMiddleware(false))
 	profile.GET("/:user_id", userHandler.GetUserByID)
 	profile.PUT("/:user_id", userHandler.UpdateUserProfile)
+
+	premium := e.Group("/premium", middlewares.JWTMiddleware(false))
+	premium.POST("/request-premium/:request_premium", userHandler.RequestPremium)
+	premium.PATCH("/update-expired", userHandler.UpdateUserPremiumExpired)
+
+	e.GET("", userHandler.GetRequestPremiumUsers)
 }

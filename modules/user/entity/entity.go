@@ -16,6 +16,8 @@ type User struct {
 	Height          int
 	Weight          int
 	Role            string
+	RequestPremium  string
+	PremiumExpired  time.Time
 	OTP             string
 	OTPExpiration   int64
 	CreatedAt       time.Time

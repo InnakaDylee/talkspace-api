@@ -1,6 +1,8 @@
 package dto
 
-import "talkspace-api/modules/user/entity"
+import (
+	"talkspace-api/modules/user/entity"
+)
 
 // Request
 func UserRegisterRequestToUserEntity(request UserRegisterRequest) entity.User {
@@ -115,3 +117,15 @@ func UserEntityToUserResponse(response entity.User) UserResponse {
 	}
 }
 
+func ListUserEntityToUserListResponse(response []entity.User) []UserListResponse {
+	var listUserListResponse []UserListResponse
+	for _, user := range response {
+			listUserListResponse = append(listUserListResponse, UserListResponse{
+				ID:            user.ID,
+				Fullname:      user.Fullname,
+				Email:         user.Email,
+				RequestPremium: user.RequestPremium,
+			})
+	}
+	return listUserListResponse
+}

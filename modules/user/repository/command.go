@@ -254,3 +254,52 @@ func (ucr *userCommandRepository) NewUserPassword(email string, password entity.
 
 	return userEntity, nil
 }
+
+func (ucr *userCommandRepository) RequestPremium(user entity.User, request_premium string) (entity.User, error) {
+	userModel := entity.UserEntityToUserModel(user)
+
+	userModel.RequestPremium = request_premium
+
+	result := ucr.db.Where("id = ?", userModel.ID).Updates(&userModel)
+	if result.Error != nil {
+		return entity.User{}, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return entity.User{}, errors.New(constant.ERROR_ID_NOTFOUND)
+	}
+
+	userEntity := entity.UserModelToUserEntity(userModel)
+
+	return userEntity, nil
+}
+
+func (ucr *userCommandRepository) UpdateUserPremiumExpired(id string, status string) (entity.User, error) {
+	userModel := model.User{}
+
+	result := ucr.db.Where("id = ?", id).First(&userModel)
+	if result.Error != nil {
+		return entity.User{}, result.Error
+	}
+
+	if status == "accept" {
+		if userModel.RequestPremium == "monthly" {
+			userModel.PremiumExpired = time.Now().AddDate(0, 1, 0)
+			userModel.RequestPremium = ""
+		} else if userModel.RequestPremium == "yearly" {
+			userModel.PremiumExpired = time.Now().AddDate(1, 0, 0)
+			userModel.RequestPremium = ""
+		}
+	} else {
+		userModel.RequestPremium = ""
+	}
+
+	result = ucr.db.Save(&userModel)
+	if result.Error != nil {
+		return entity.User{}, result.Error
+	}
+
+	userEntity := entity.UserModelToUserEntity(userModel)
+
+	return userEntity, nil
+}

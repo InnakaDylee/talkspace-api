@@ -22,6 +22,8 @@ const (
 	SUCCESS_OTP_VERIFIED      = "otp verification successfully"
 	SUCCESS_VERIFICATION      = "verification successfully"
 	SUCCESS_STATUS_UPDATED    = "status updated successfully"
+	SUCCESS_REQUEST_PREMIUM   = "request premium successfully"
+	SUCCESS_PREMIUM_EXPIRED   = "premium expired successfully"
 )
 
 // Error
@@ -66,4 +68,5 @@ const (
 	ERROR_STATUS_INVALID       = "invalid status"
 	ERROR_UPLOAD_IMAGE         = "failed to upload profile picture"
 	ERROR_UPLOAD_IMAGE_S3 	   = "failed to upload profile picture to s3"
+	ERROR_REQUEST_PREMIUM      = "failed to request premium"
 )

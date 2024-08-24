@@ -14,6 +14,8 @@ type User struct {
 	Height         int
 	Weight         int
 	Role           string `gorm:"type:role;default:'user'"`
+	RequestPremium string
+	PremiumExpired time.Time
 	OTP            string `gorm:"not null"`
 	OTPExpiration  int64
 	CreatedAt      time.Time

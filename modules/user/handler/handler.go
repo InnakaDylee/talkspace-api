@@ -236,3 +236,73 @@ func (uh *userHandler) NewUserPassword(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PASSWORD_UPDATED, nil))
 }
+
+func (uh *userHandler) RequestPremium(c echo.Context) error {
+	request_premium := c.Param("request_premium")
+
+	userID, role, errExtractToken := middlewares.ExtractToken(c)
+	if errExtractToken != nil {
+		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(errExtractToken.Error()))
+	}
+
+	if role != constant.USER {
+		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(constant.ERROR_ROLE_ACCESS))
+	}
+
+	userEntity, errGet := uh.userQueryUsecase.GetUserByID(userID)
+	if errGet != nil {
+		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errGet.Error()))
+	}
+
+	_, errCreate := uh.userCommandUsecase.RequestPremium(userEntity, request_premium)
+	if errCreate != nil {
+		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errCreate.Error()))
+	}
+
+	return c.JSON(http.StatusCreated, responses.SuccessResponse(constant.SUCCESS_REQUEST_PREMIUM, nil))
+}
+
+func (uh *userHandler) UpdateUserPremiumExpired(c echo.Context) error {
+	userVerify := dto.UserVerifyPremium{}
+
+	errBind := c.Bind(&userVerify)
+	if errBind != nil {
+		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errBind.Error()))
+	}
+
+	_, role, errExtractToken := middlewares.ExtractToken(c)
+	if errExtractToken != nil {
+		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(errExtractToken.Error()))
+	}
+
+	if role != "admin" {
+		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(constant.ERROR_ROLE_ACCESS))
+	}
+
+	_, errUpdate := uh.userCommandUsecase.UpdateUserPremiumExpired(userVerify.UserID, userVerify.Status)
+	if errUpdate != nil {
+		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errUpdate.Error()))
+	}
+
+	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_PREMIUM_EXPIRED, nil))
+}
+
+func (uh *userHandler) GetRequestPremiumUsers(c echo.Context) error {
+	_, role, errExtractToken := middlewares.ExtractToken(c)
+	if errExtractToken != nil {
+		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(errExtractToken.Error()))
+	}
+
+	if role != "admin" {
+		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(constant.ERROR_ROLE_ACCESS))
+	}
+
+	users, errGet := uh.userQueryUsecase.GetRequestPremiumUsers()
+	if errGet != nil {
+		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errGet.Error()))
+	}
+
+	usersResponse := dto.ListUserEntityToUserListResponse(users)
+
+	return c.JSON(http.StatusOK, responses.SuccessResponse(constant.SUCCESS_REQUEST_PREMIUM, usersResponse))
+}
