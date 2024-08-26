@@ -12,7 +12,7 @@ type Doctor struct {
 	Email             string  `gorm:"not null"`
 	Password          string  `gorm:"not null"`
 	ProfilePicture    string  `gorm:"not null"`
-	Status            bool    `gorm:"not null;default:false"`
+	Status            bool    `gorm:"not null;default:true"`
 	Gender            string  `gorm:"type:gender;default:NULL"`
 	Specialization    string  `gorm:"not null"`
 	YearsOfExperience string  `gorm:"not null"`

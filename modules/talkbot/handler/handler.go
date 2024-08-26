@@ -24,13 +24,14 @@ func NewTalkbotHandler(tqu usecase.TalkbotQueryUsecaseInterface) *talkbotHandler
 
 // Command
 func (th *talkbotHandler) CreateTalkBotMessage(c echo.Context) error {
-	request := dto.TalkbotRequest{}
-	errBind := c.Bind(&request)
+	talkbotRequest := dto.TalkbotRequest{}
+
+	errBind := c.Bind(&talkbotRequest)
 	if errBind != nil {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errBind.Error()))
 	}
 
-	_, role, errExtractToken := middlewares.ExtractToken(c)
+	userID, role, errExtractToken := middlewares.ExtractToken(c)
 	if role != constant.USER {
 		return c.JSON(http.StatusUnauthorized, responses.ErrorResponse(constant.ERROR_ROLE_ACCESS))
 	}
@@ -43,7 +44,9 @@ func (th *talkbotHandler) CreateTalkBotMessage(c echo.Context) error {
 		return err
 	}
 
-	promptResponse, errGetPrompt := th.talkbotQueryUsecase.GetTalkBotPrompt(request, config.OPENAI.OPENAI_API_KEY)
+	talkbotEntity :=  dto.TalkbotRequestToTalkbotEntity(talkbotRequest)
+
+	promptResponse, errGetPrompt := th.talkbotQueryUsecase.GetTalkBotPrompt(userID, talkbotEntity, config.OPENAI.OPENAI_API_KEY)
 	if errGetPrompt != nil {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse(errGetPrompt.Error()))
 	}
