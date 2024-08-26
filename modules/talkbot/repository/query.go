@@ -20,7 +20,7 @@ func (tr *talkbotQueryRepository) GetUserMessages(userID string) ([]entity.Talkb
 
 	var talkbot []entity.Talkbot
 
-	result := tr.db.Where("user_id = ?", userID).Order("created_at DESC").Limit(3).Find(&talkbot)
+	result := tr.db.Where("user_id = ?", userID).Order("created_at DESC").Limit(1).Find(&talkbot)
 	if result.Error != nil {
 		return []entity.Talkbot{}, result.Error
 	}
