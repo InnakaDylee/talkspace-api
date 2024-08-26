@@ -6,9 +6,10 @@ import (
 	"gorm.io/gorm"
 
 	am "talkspace-api/modules/admin/model"
-	dm "talkspace-api/modules/doctor/model"
-	um "talkspace-api/modules/user/model"
 	cm "talkspace-api/modules/consultation/model"
+	dm "talkspace-api/modules/doctor/model"
+	tm "talkspace-api/modules/talkbot/model"
+	um "talkspace-api/modules/user/model"
 )
 
 func Migration(db *gorm.DB) {
@@ -18,10 +19,11 @@ func Migration(db *gorm.DB) {
 		&am.Admin{},
 		&cm.Consultation{},
 		&cm.Message{},
+		&tm.Talkbot{},
 	)
 
 	migrator := db.Migrator()
-	tables := []string{"users", "admins", "doctors"} // "chatbots", "consultations"
+	tables := []string{"users", "admins", "doctors", "consultations", "messages", "talkbots"}
 	for _, table := range tables {
 		if !migrator.HasTable(table) {
 			log.Fatalf("table %s was not successfully created", table)
