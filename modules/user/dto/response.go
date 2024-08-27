@@ -11,6 +11,7 @@ type (
 		ID         string `json:"id"`
 		Fullname   string `json:"fullname"`
 		Email      string `json:"email"`
+		Premium   bool   `json:"premium"`
 		Token      string `json:"token"`
 	}
 

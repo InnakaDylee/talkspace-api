@@ -2,6 +2,7 @@ package dto
 
 import (
 	"talkspace-api/modules/user/entity"
+	"time"
 )
 
 // Request
@@ -72,12 +73,23 @@ func UserEntityToUserRegisterResponse(response entity.User) UserRegisterResponse
 }
 
 func UserEntityToUserLoginResponse(response entity.User, token string) UserLoginResponse {
-	return UserLoginResponse{
+	var premium bool
+
+	if response.PremiumExpired.After(time.Now()) {
+		premium = true
+	} else {
+		premium = false
+	}
+	
+	userLogin := UserLoginResponse{
 		ID:         response.ID,
 		Fullname:   response.Fullname,
 		Email:      response.Email,
+		Premium:    premium,
 		Token:      token,
 	}
+
+	return userLogin
 }
 
 func UserEntityToUserUpdateProfileResponse(response entity.User) UserUpdateProfileResponse {
