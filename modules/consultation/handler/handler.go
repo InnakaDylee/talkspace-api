@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"talkspace-api/middlewares"
 	"talkspace-api/modules/consultation/dto"
 	"talkspace-api/modules/consultation/model"
@@ -11,6 +12,7 @@ import (
 	user "talkspace-api/modules/user/model"
 	"talkspace-api/utils/responses"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -105,12 +107,22 @@ func (h *Handler) JoinRoom(c echo.Context) error {
 		
 	}
 
-	ID, Role, _ := middlewares.ExtractToken(c)
+	
+	tokenParam := c.Param("token")
+	
+	token, err := jwt.Parse(tokenParam, func(token *jwt.Token) (interface{}, error) {
+		jwtSecret := []byte(os.Getenv("JWT_SECRET"))
+        return jwtSecret, nil
+    })
+	
+	if err != nil || !token.Valid {
+		return c.JSON(http.StatusBadRequest, responses.ErrorResponse("invalid token"))
+	}
 
-	clientID := ID
+	clientID := token.Claims.(jwt.MapClaims)["id"].(string)
 	roomID := c.Param("roomId")
-	role := Role
-
+	role := token.Claims.(jwt.MapClaims)["role"].(string)
+	
 	if role == "admin" {
 		return c.JSON(http.StatusBadRequest, responses.ErrorResponse("invalid role"))
 	}
@@ -157,8 +169,6 @@ func (h *Handler) GetRooms(c echo.Context) error {
 			var doctor doctor.Doctor
 			h.db.Where("id = ?", r.UserID).Find(&user)
 			h.db.Where("id = ?", r.DoctorID).Find(&doctor)
-			fmt.Println(r.UserID, r.DoctorID)
-			fmt.Println(user)
 			roomsRes = append(roomsRes, dto.RoomRes{
 				ID:   r.ID,
 				DoctorProfilePicture: doctor.ProfilePicture,

@@ -1,0 +1,110 @@
+{
+	"info": {
+		"_postman_id": "fb9b126c-9d9f-4440-a7c3-5345158d54f4",
+		"name": "transaction",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "28965200"
+	},
+	"item": [
+		{
+			"name": "request premium",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{local}}/users/premium/request-premium",
+					"host": [
+						"{{local}}"
+					],
+					"path": [
+						"users",
+						"premium",
+						"request-premium"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update expired premium",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE3MjQ1OTc2NzQsImlkIjoiMjBhYjg5ZGMtMGJmMi00YmU5LWEwZmQtNTg1YTE2ZjEyMzNiIiwicm9sZSI6ImFkbWluIn0.CcHZ79w8rvhoLfSUx6iuntm82NSax-i7-tJVLq9Un1o",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"user_id\":\"896d3ef0-abcb-4ef8-b53f-8d64953b091d\",\n    \"status\":\"accept\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api-talkspace.sersow.com/users/premium/update-expired",
+					"protocol": "https",
+					"host": [
+						"api-talkspace",
+						"sersow",
+						"com"
+					],
+					"path": [
+						"users",
+						"premium",
+						"update-expired"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get user premium request",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpemVkIjp0cnVlLCJleHAiOjE3MjQ3ODI1MTcsImlkIjoiMjBhYjg5ZGMtMGJmMi00YmU5LWEwZmQtNTg1YTE2ZjEyMzNiIiwicm9sZSI6ImFkbWluIn0.4LCPFznVA-FQ1oTSX18kOEZy86Rdl7AusqYokRdTmZM",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api-talkspace.sersow.com/users",
+					"protocol": "https",
+					"host": [
+						"api-talkspace",
+						"sersow",
+						"com"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

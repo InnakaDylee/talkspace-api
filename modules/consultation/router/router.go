@@ -17,7 +17,7 @@ func ConsultationRoutes(e *echo.Group, db *gorm.DB) {
 	go hub.Run()
 
 	e.POST("/createRoom", consultationWebsocket.CreateRoom, middlewares.JWTMiddleware(false))
-	e.GET("/joinRoom/:roomId", consultationWebsocket.JoinRoom, middlewares.JWTMiddleware(false))
+	e.GET("/joinRoom/:roomId/:token", consultationWebsocket.JoinRoom)
 	e.GET("/getRooms", consultationWebsocket.GetRooms, middlewares.JWTMiddleware(false))
 	e.GET("/getDoctors", consultationWebsocket.GetDoctors, middlewares.JWTMiddleware(false))
 }
