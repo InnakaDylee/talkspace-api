@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Registration Success</title>
+    <style>
+        .email-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border: 1px solid #e4e7eb;
+            border-radius: 8px;
+            text-align: left;
+        }
+        .email-header {
+            color: #7c3aed;
+            margin-bottom: 20px;
+        }
+        .email-content {
+            color: #4b5563;
+            margin-bottom: 20px;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .info-table td {
+            padding: 8px;
+            vertical-align: top;
+        }
+        .info-table .label {
+            text-align: start;
+            padding-right: 15px;
+            font-weight: bold;
+            width: 30%;
+        }
+        .info-table .value {
+            text-align: start;
+            width: 70%;
+        }
+	.info-table .value::before{
+	    content: ": ";
+	}
+        .email-footer {
+            border-top: 1px solid #e4e7eb;
+            margin-top: 20px;
+            padding-top: 20px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f3f4f6;">
+    <div class="email-container">
+        <h1 class="email-header">TalkSpace</h1>
+        <p class="email-content">Dear {{.Fullname}},</p>
+        <p class="email-content">Congratulations on your successful registration as a Doctor on TalkSpace. Please keep this information confidential and do not share it with anyone.</p>
+        <table class="info-table">
+            <tr>
+                <td class="label">Fullname</td>
+                <td class="value">{{.Fullname}}</td>
+            </tr>
+            <tr>
+                <td class="label">License Number</td>
+                <td class="value">{{.LicenseNumber}}</td>
+            </tr>
+            <tr>
+                <td class="label">Email</td>
+                <td class="value">{{.Email}}</td>
+            </tr>
+            <tr>
+                <td class="label">Password</td>
+                <td class="value">{{.Password}}</td>
+            </tr>
+        </table>
+        <p class="email-content">We’re thrilled to have you on board! Welcome to the journey of empowering mental health at TalkSpace.</p>
+        <p class="email-content">Kind regards,<br>TalkSpace Team</p>
+        <div class="email-footer">&copy; 2024 TalkSpace Inc</div>
+    </div>
+</body>
+</html>
